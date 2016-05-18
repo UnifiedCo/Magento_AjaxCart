@@ -1,0 +1,14 @@
+<?xml version="1.0" ?>
+<layout>
+	<default>
+        <reference name="head">
+            <action method="addJs"><name>jquery/jquery.min.js</name></action>
+            <action method="addJs"><name>jquery/jquery-noconflict.js</name></action>
+            <action method="addItem"><type>skin_css</type><name>css/logicspot/ajaxcart/ajaxcart.css</name></action>
+            <action method="addItem"><type>skin_js</type><name>js/logicspot/ajaxcart/ajaxcart.js</name></action>
+        </reference>
+		<reference name="content">
+			<block type="core/template" name="ajaxcart-element" template="logicspot/ajaxcart/element.phtml" after="-" />
+		</reference>
+	</default>
+</layout>

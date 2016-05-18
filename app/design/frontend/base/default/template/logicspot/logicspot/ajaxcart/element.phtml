@@ -1,0 +1,13 @@
+<div class="ajaxcart-overlay"></div>
+<div class="ajaxcart-element" style="display:none">
+	<img class="ajaxcart-loader" src="<?php echo $this->getSkinUrl('images/ajaxcart-loader.gif'); ?>" alt="<?php echo $this->__('Loading...') ?>" title="<?php echo $this->__('Loading...') ?>" />
+	<div class="ajaxcart-content" style="display: none;">
+		<div class="ajaxcart-content-message"></div>
+		<div class="ajaxcart-content-image"></div>
+		<div class="ajaxcart-content-buttons">
+			<button class="ajaxcart-continue"><?php echo $this->__('Continue shopping') ?></button>
+			<button onclick="window.location='<?php echo Mage::getUrl('checkout/cart') ?>'" class="ajaxcart-cart"><?php echo $this->__('Go to cart') ?></button>
+		</div>
+	</div>
+    <input type="hidden" class="ajaxcart-url" value="<?php echo Mage::getUrl('ajaxcart/index/add') ?>" />
+</div>

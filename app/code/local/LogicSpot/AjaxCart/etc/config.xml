@@ -1,0 +1,43 @@
+<?xml version="1.0" ?>
+<config>
+    <modules>
+        <LogicSpot_AjaxCart>
+            <version>0.0.1</version>
+        </LogicSpot_AjaxCart>
+    </modules>
+    <global>
+        <blocks>
+            <ajaxcart>
+                <class>LogicSpot_AjaxCart_Block</class>
+            </ajaxcart>
+        </blocks>
+        <models>
+            <ajaxcart>
+                <class>LogicSpot_AjaxCart_Model</class>
+            </ajaxcart>
+        </models>
+        <helpers>
+            <ajaxcart>
+                <class>LogicSpot_AjaxCart_Helper</class>
+            </ajaxcart>
+        </helpers>
+    </global>
+    <frontend>
+        <layout>
+            <updates>
+                <ajaxcart>
+                    <file>logicspot/ajaxcart/ajaxcart.xml</file>
+                </ajaxcart>
+            </updates>
+        </layout>
+        <routers>
+            <ajaxcart>
+                <use>standard</use>
+                <args>
+                    <module>LogicSpot_AjaxCart</module>
+                    <frontName>ajaxcart</frontName>
+                </args>
+            </ajaxcart>
+        </routers>
+    </frontend>
+</config>
