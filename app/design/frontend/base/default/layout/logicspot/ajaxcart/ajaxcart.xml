@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<layout>
+	<default>
+        <reference name="head">
+            <action method="addItem"><type>js</type><name>logicspot/ajaxcart.js</name></action>
+        </reference>
+		<reference name="content">
+			<block type="core/template" name="ajaxcart-element" template="logicspot/ajaxcart/element.phtml" after="-" />
+		</reference>
+	</default>
+</layout>
