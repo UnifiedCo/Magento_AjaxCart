@@ -3,6 +3,7 @@
 	<default>
         <reference name="head">
             <action method="addJs"><script>logicspot/ajaxcart.js</script></action>
+			<action method="addItem"><type>skin_js</type><name>logicspot/ajaxcart/ajaxcart.js</name></action>
         </reference>
 		<reference name="before_body_end">
 			<block type="core/template" name="logicspot.ajaxcart" as="ajaxcart" template="logicspot/ajaxcart/element.phtml" after="-" />
