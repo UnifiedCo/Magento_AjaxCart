@@ -1,5 +1,11 @@
 <script type="text/javascript">
     //<![CDATA[
     var AJAXCART_ENABLE = <?php var_export(Mage::helper('ajaxcart')->isModuleEnabled()); ?>;
+    if (typeof jQuery !== 'undefined') {
+        jQuery(document).ready(function(){
+            var options = ajaxcart_options ? ajaxcart_options : null;
+            jQuery(document).ajaxAddToCart(options);
+        });
+    }
     //]]>
 </script>
