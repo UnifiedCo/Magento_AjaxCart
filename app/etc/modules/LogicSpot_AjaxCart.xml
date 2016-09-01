@@ -5,6 +5,7 @@
             <active>true</active>
             <codePool>community</codePool>
             <depends>
+                <LogicSpot_Core />
                 <Mage_Checkout/>
             </depends>
         </LogicSpot_AjaxCart>

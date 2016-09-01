@@ -2,10 +2,10 @@
 <layout>
 	<default>
         <reference name="head">
-            <action method="addItem"><type>js</type><name>logicspot/ajaxcart.js</name></action>
+            <action method="addJs"><script>logicspot/ajaxcart.js</script></action>
         </reference>
-		<reference name="content">
-			<block type="core/template" name="ajaxcart-element" template="logicspot/ajaxcart/element.phtml" after="-" />
+		<reference name="before_body_end">
+			<block type="core/template" name="logicspot.ajaxcart" as="ajaxcart" template="logicspot/ajaxcart/element.phtml" after="-" />
 		</reference>
 	</default>
 </layout>
