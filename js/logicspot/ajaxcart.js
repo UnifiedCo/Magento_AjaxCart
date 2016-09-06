@@ -89,14 +89,16 @@
 
                 // Get the product configuration data
                 var productData = settings.validation.getProductConfiguration(button);
-                
+
                 if (productData) {
 
                     // Check there is sufficient stock
                     var available = settings.validation.stockCheck(productData);
 
                     if (available) {
-                        settings.validation.success(productData);
+                        console.log(productData);
+                        console.log('success!');
+                        settings.validation.success();
                     }
 
                 }
@@ -149,7 +151,13 @@
                 var select = $('.super-attribute-select').last();
                 var selectAttrId = select.attr('id').substring(9); // e.g. Get "180" from "attribute180"
                 var selectAttrOption = select.val();
-                var simpleProductId = productData.configuration.attributes[selectAttrId].options[selectAttrOption].products[0];
+
+                try {
+                    var simpleProductId = productData.configuration.attributes[selectAttrId].options[selectAttrOption].products[0];
+                } catch(err) {
+                    settings.validation.error('Could not find child product data');
+                    return false;
+                }
 
                 // Create new prop in the object with the selected product ID and qty
                 productData.selectedProduct = simpleProductId;
@@ -184,13 +192,12 @@
             };
 
             settings.validation.error = function(error) {
-                console.log(error);
+                console.log('ajaxcart.js: ' + error);
                 settings.display.error();
             };
 
-            settings.validation.success = function(productData) {
-                // Initialise Ajax
-                settings.ajax.init(productData);
+            settings.validation.success = function() {
+                settings.ajax.init();
             };
 
 
@@ -198,9 +205,8 @@
              AJAX
              */
 
-            settings.ajax.init = function(productData) {
+            settings.ajax.init = function() {
                 console.log('settings.ajax.init');
-                console.log(productData);
 
                 // Make ajax call
                 settings.ajax.request();
