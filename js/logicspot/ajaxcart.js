@@ -105,8 +105,8 @@
 
             settings.validation.getProductConfiguration = function(button) {
 
-                var data = JSON.parse($(button).attr('data-product'));
-                var requiredProps = ['id','type','qty'];
+                var data = JSON.parse($(button).closest('form').find('div[data-product]').attr('data-product'));
+                var requiredProps = ['productId','productType','Qty'];
 
                 // Check product data has required fields
                 requiredProps.forEach(function(item){
@@ -118,7 +118,7 @@
                 });
 
                 // If configurable product, validate configurable data
-                if (data.type === 'configurable')
+                if (data.productType === 'configurable')
                     data = settings.validation.checkConfigurableAttributes(data);
 
                 return data;
@@ -127,7 +127,7 @@
 
             settings.validation.checkConfigurableAttributes = function(productData) {
 
-                if (!productData.configuration) {
+                if (!productData.configuration || !productData.products) {
                     settings.validation.error('missing configurable data');
                     return false;
                 }
@@ -152,7 +152,7 @@
                 var simpleProductId = productData.configuration.attributes[selectAttrId].options[selectAttrOption].products[0];
 
                 // Create new prop in the object with the selected product ID and qty
-                productData.selectedProduct = productData.configuration.products[simpleProductId];
+                productData.selectedProduct = simpleProductId;
                 return productData;
 
             };
@@ -161,7 +161,7 @@
 
                 var qtyInput = $(settings.elements.qty);
                 var qtyInputVal = qtyInput.val();
-                var stock = productData.type === 'configurable' ? productData.selectedProduct.qty : productData.qty;
+                var stock = productData.productType === 'configurable' ? productData.products[productData.selectedProduct].Qty : productData.qty;
 
                 var isValid = false;
 

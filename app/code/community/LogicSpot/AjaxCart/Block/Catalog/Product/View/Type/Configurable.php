@@ -85,7 +85,7 @@ class LogicSpot_AjaxCart_Block_Catalog_Product_View_Type_Configurable extends Ma
 						$productsIndex = array();
 					}
 
-					$info['options'][] = array(
+					$info['options'][$value['value_index']] = array(
 						'id'        => $value['value_index'],
 						'label'     => $value['label'],
 						//'price'     => $configurablePrice,
@@ -146,7 +146,7 @@ class LogicSpot_AjaxCart_Block_Catalog_Product_View_Type_Configurable extends Ma
 			'productId'         => $currentProduct->getId(),
 //			'chooseText'        => Mage::helper('catalog')->__('Choose an Option...'),
 //			'taxConfig'         => $taxConfig,
-			'productType'       => $currentProduct->getaTypeId(),
+			'productType'       => $currentProduct->getTypeId(),
 			'Qty'               => 1000,
 			'products'          => $products
 		);
