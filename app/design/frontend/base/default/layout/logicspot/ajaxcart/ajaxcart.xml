@@ -3,9 +3,6 @@
     <default>
         <reference name="delayed_js">
             <action method="addJs">
-                <script>jquery/jquery.js</script>
-            </action>
-            <action method="addJs">
                 <script>logicspot/ajaxcart.js</script>
             </action>
             <action method="addItem">
