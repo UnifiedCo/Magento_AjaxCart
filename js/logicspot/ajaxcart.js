@@ -9,7 +9,8 @@
              */
             var settings = {
                 elements: {
-                    addToCartButton: '.add-to-cart',
+                    addToCartButton: '.btn-cart',
+                    qty: 'input.qty',
                     target: $(document)
                 },
                 documentReady: {
@@ -21,7 +22,7 @@
                     init: null,
                     getProductConfiguration: null,
                     checkConfigurableAttributes: null,
-                    checkQty: null,
+                    stockCheck: null,
                     error: null,
                     success: null
                 },
@@ -41,44 +42,41 @@
                 }
             };
 
-            // Merge defaults with any configured overrides
-            for (var obj in settings) {
-                if (options && options.hasOwnProperty(obj)) {
-                    settings[obj] = $.extend( {}, settings[obj], options[obj] );
-                }
-            }
-
             /*
              DOM READY
              */
 
-            settings.documentReady.onClick = function() {
+            settings.documentReady.onClick = function(e) {
+                e.preventDefault();
                 // Initialise validation
-                settings.validation.init();
+                settings.validation.init(e.target);
                 // Loading state
                 settings.display.loading();
             };
 
-            settings.documentReady.onHover = function() {};
+            settings.documentReady.onHover = function(e) {};
 
-            settings.documentReady.onLoad = function() {};
+            settings.documentReady.onLoad = function(e) {};
 
             $(document).ready(function(){
 
+                // Check button exists
+                if ($(settings.elements.addToCartButton).length < 1)
+                    settings.validation.error('missing button');
+
                 // Connect button to onClick setting
-                settings.elements.target.on('click', settings.elements.addToCartButton, function(){
-                    settings.documentReady.onClick();
+                settings.elements.target.on('click', settings.elements.addToCartButton, function(e){
+                    settings.documentReady.onClick(e);
                 });
 
-
                 // Connect button to onHover setting
-                settings.elements.target.on('hover', settings.elements.addToCartButton, function(){
-                    settings.documentReady.onHover();
+                settings.elements.target.on('hover', settings.elements.addToCartButton, function(e){
+                    settings.documentReady.onHover(e);
                 });
 
                 // Connect button to onLoad setting
-                settings.elements.target.on('load', settings.elements.addToCartButton, function(){
-                    settings.documentReady.onLoad();
+                settings.elements.target.on('load', settings.elements.addToCartButton, function(e){
+                    settings.documentReady.onLoad(e);
                 });
 
             });
@@ -87,59 +85,112 @@
              VALIDATION
              */
 
-            settings.validation.init = function () {
+            settings.validation.init = function (button) {
 
-                // Get the product configuration
-                settings.validation.getProductConfiguration();
+                // Get the product configuration data
+                var productData = settings.validation.getProductConfiguration(button);
+                
+                if (productData) {
 
-                // Check quantity
-                settings.validation.checkQty();
+                    // Check there is sufficient stock
+                    var available = settings.validation.stockCheck(productData);
 
-                // If configurable, check configurable attributes
-                settings.validation.checkConfigurableAttributes();
+                    if (available) {
+                        settings.validation.success(productData);
+                    }
 
-                // Success
-                settings.validation.success();
+                }
 
             };
 
-            settings.validation.getProductConfiguration = function() {
-                var productData;
-                // Do some validation
-                // If error
-                settings.validation.error();
-                // else
+            settings.validation.getProductConfiguration = function(button) {
+
+                var data = JSON.parse($(button).attr('data-product'));
+                var requiredProps = ['id','type','qty'];
+
+                // Check product data has required fields
+                requiredProps.forEach(function(item){
+                    if (!data.hasOwnProperty(item)) {
+                        // If data is missing, call validation error
+                        settings.validation.error('missing product data: ' + item);
+                        data = false;
+                    }
+                });
+
+                // If configurable product, validate configurable data
+                if (data.type === 'configurable')
+                    data = settings.validation.checkConfigurableAttributes(data);
+
+                return data;
+
+            };
+
+            settings.validation.checkConfigurableAttributes = function(productData) {
+
+                if (!productData.configuration) {
+                    settings.validation.error('missing configurable data');
+                    return false;
+                }
+
+                var isValid = true;
+
+                // Validate that user has selected attribute options
+                var selects = $('.super-attribute-select');
+                selects.each(function(){
+                    if (!this.value) {
+                        settings.validation.error('please complete all fields');
+                        isValid = false;
+                    }
+                });
+
+                if (!isValid) return false;
+
+                // Get the last select, from which we can infer the chosen simple product
+                var select = $('.super-attribute-select').last();
+                var selectAttrId = select.attr('id').substring(9); // e.g. Get "180" from "attribute180"
+                var selectAttrOption = select.val();
+                var simpleProductId = productData.configuration.attributes[selectAttrId].options[selectAttrOption].products[0];
+
+                // Create new prop in the object with the selected product ID and qty
+                productData.selectedProduct = productData.configuration.products[simpleProductId];
                 return productData;
+
             };
 
-            settings.validation.checkConfigurableAttributes = function() {
-                var configurableProductData;
-                // Do some validation
-                // If error
-                settings.validation.error();
-                // else
-                return configurableProductData;
+            settings.validation.stockCheck = function (productData) {
+
+                var qtyInput = $(settings.elements.qty);
+                var qtyInputVal = qtyInput.val();
+                var stock = productData.type === 'configurable' ? productData.selectedProduct.qty : productData.qty;
+
+                var isValid = false;
+
+                switch (true) {
+                    case (qtyInput.length < 1) :
+                        settings.validation.error('Missing qty input');
+                        break;
+                    case (typeof qtyInputVal == 'undefined' || qtyInputVal < 1) :
+                        settings.validation.error('Invalid qty value');
+                        break;
+                    case (qtyInputVal > stock) :
+                        settings.validation.error('Insufficient stock');
+                        break;
+                    default :
+                        isValid = true;
+                }
+
+                return isValid;
+
             };
 
-            settings.validation.checkQty = function () {
-                var qty;
-                // Do some validation
-                // If error
-                settings.validation.error();
-                // else
-                return qty;
-            };
-
-            settings.validation.error = function() {
-                // Handle validation fail
+            settings.validation.error = function(error) {
+                console.log(error);
                 settings.display.error();
             };
 
-            settings.validation.success = function() {
-                // Handle validation passed
-
+            settings.validation.success = function(productData) {
                 // Initialise Ajax
-                settings.ajax.init();
+                settings.ajax.init(productData);
             };
 
 
@@ -147,7 +198,10 @@
              AJAX
              */
 
-            settings.ajax.init = function() {
+            settings.ajax.init = function(productData) {
+                console.log('settings.ajax.init');
+                console.log(productData);
+
                 // Make ajax call
                 settings.ajax.request();
                 // On success
@@ -213,6 +267,13 @@
             settings.display.error = function() {
                 // Add error class to button etc.
             };
+
+            // Merge defaults with any configured overrides
+            for (var obj in settings) {
+                if (options && options.hasOwnProperty(obj)) {
+                    settings[obj] = $.extend( {}, settings[obj], options[obj] );
+                }
+            }
 
         }; // end jQuery.fn.ajaxAddToCart
 
