@@ -219,17 +219,92 @@
 
             settings.ajax.request = function() {
                 //build request parameters
-                // If fail
+	            var data = jQuery('#product_addtocart_form').serialize();
+	            data += '&isAjax=1';
+	
+	            try {
+		
+		            jQuery.ajax({
+			            url: url,
+			            dataType: 'json',
+			            type : 'post',
+			            data: data,
+			            success: function(data){
+				           
+			            	if(data.status == 'SUCCESS') {
+					
+					            switch(AJAXCART_TYPE) {
+						            case 1: //TYPE_MINICART
+							            settings.ajax.miniCart();
+						            	break;
+						            case 2: //TYPE_INLINE
+							            settings.ajax.inline();
+						            	break;
+						            case 3: //TYPE_POPUP
+							            settings.ajax.popup();
+							            break;
+						            default:
+							            settings.ajax.inline();
+					            }
+					
+					            
+				            } else if (data.status == 'ERROR') {
+					            jQuery("#add-to-basket-validation").html(data.message.replace(/<(?:.|\n)*?>/gm, ''));
+				            }
+				
+				            //reset the button after 4 secs
+				            setTimeout(function() {
+					            jQuery(button).removeClass('cart-added').prop('disabled',false);
+				            }, 3500);
+			            },
+			            error: function(){
+				            jQuery("#add-to-basket-validation").html('There was an error while processing your request. Please try again later.');
+				            //reset the button
+				            jQuery(button).removeClass('cart-adding').prop('disabled',false);
+			            }
+		            });
+		
+		            jQuery.event.trigger('logicspot_ajaxaddtocart_after', obj);
+	            } catch (e) {
+	            }
+	            
+	            
+	            
+	            
+	            
+	            
+	
+	            settings.display.loading();
+	            
+	            // If fail
                 settings.display.error();
-                // else
+                
+	            
+	            // else
                 return this;
             };
 
             settings.ajax.miniCart =  function() {
-                // Do some validation
-                // If error
+                
+            	// Do some validation
+	            
+	            // set the container
+	            jQuery(".minicart-container").html(data.sidebar);
+	
+	            jQuery('.cart-header').toggleClass('cart-header-open');
+	
+	            window.setTimeout(function() {
+		            if (!jQuery('#-sidebar-cart').is(':hover')) {
+			            jQuery('.cart-header-anchor').toggleClass('cart-header-open');
+		            }
+		            basketDropdown(jQuery);
+	            }, 5000);
+	            
+	            
+	            // If error
                 settings.ajax.error();
-                // else
+                
+	            // else
                 settings.ajax.success();
             };
 
