@@ -10,6 +10,11 @@
             <ajaxcart>
                 <class>LogicSpot_AjaxCart_Block</class>
             </ajaxcart>
+            <catalog>
+                <rewrite>
+                    <product_view_type_configurable>LogicSpot_AjaxCart_Block_Catalog_Product_View_Type_Configurable</product_view_type_configurable>
+                </rewrite>
+            </catalog>
         </blocks>
         <models>
             <ajaxcart>

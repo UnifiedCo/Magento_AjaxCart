@@ -1,12 +1,25 @@
 <?xml version="1.0" ?>
 <layout>
-	<default>
-        <reference name="head">
-            <action method="addJs"><script>logicspot/ajaxcart.js</script></action>
-			<action method="addItem"><type>skin_js</type><name>logicspot/ajaxcart/ajaxcart.js</name></action>
+    <default>
+        <reference name="delayed_js">
+            <action method="addJs">
+                <script>logicspot/ajaxcart.js</script>
+            </action>
+            <action method="addItem">
+                <type>skin_js</type>
+                <name>logicspot/ajaxcart/ajaxcart.js</name>
+            </action>
         </reference>
-		<reference name="before_body_end">
-			<block type="core/template" name="logicspot.ajaxcart" as="ajaxcart" template="logicspot/ajaxcart/element.phtml" after="-" />
-		</reference>
-	</default>
+        <reference name="before_body_end">
+            <block type="core/template" name="logicspot.ajaxcart" as="ajaxcart" template="logicspot/ajaxcart/element.phtml" after="-"/>
+        </reference>
+    </default>
+    <catalog_product_view>
+        <reference name="product.info">
+            <action method="setTemplate">
+                <template>logicspot/ajaxcart/catalog/product/view.phtml</template>
+            </action>
+            <block type="catalog/product_view_type_configurable" name="json_object" as="json_object" template="logicspot/ajaxcart/catalog/product/json_object.phtml"/>
+        </reference>
+    </catalog_product_view>
 </layout>
