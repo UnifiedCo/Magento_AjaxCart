@@ -9,7 +9,9 @@
              */
             var settings = {
                 elements: {
-                    addToCartButton: '.btn-cart',
+                    addToCartButton: {
+                    	selector: '.btn-cart'
+                    },
                     qty: 'input.qty',
                     target: $(document)
                 },
@@ -23,22 +25,24 @@
                     getProductConfiguration: null,
                     checkConfigurableAttributes: null,
                     stockCheck: null,
-                    error: null,
-                    success: null
+                    success: null,
+	                error: null
                 },
                 ajax: {
                     init: null,
-                    request: null,
-                    miniCart: null,
-                    popup: null,
-                    inline: null,
+                    data: null,
+	                request: null,
                     success: null,
                     error: null
                 },
                 display: {
                     loading: null,
-                    error: null,
-                    success: null
+	                loaded: null,
+	                miniCart: null,
+	                popup: null,
+	                inline: null,
+                    success: null,
+	                error: null
                 }
             };
 
@@ -61,21 +65,21 @@
             $(document).ready(function(){
 
                 // Check button exists
-                if ($(settings.elements.addToCartButton).length < 1)
+                if ($(settings.elements.addToCartButton.selector).length < 1)
                     settings.validation.error('missing button');
 
                 // Connect button to onClick setting
-                settings.elements.target.on('click', settings.elements.addToCartButton, function(e){
+                settings.elements.target.on('click', settings.elements.addToCartButton.selector, function(e){
                     settings.documentReady.onClick(e);
                 });
 
                 // Connect button to onHover setting
-                settings.elements.target.on('hover', settings.elements.addToCartButton, function(e){
+                settings.elements.target.on('hover', settings.elements.addToCartButton.selector, function(e){
                     settings.documentReady.onHover(e);
                 });
 
                 // Connect button to onLoad setting
-                settings.elements.target.on('load', settings.elements.addToCartButton, function(e){
+                settings.elements.target.on('load', settings.elements.addToCartButton.selector, function(e){
                     settings.documentReady.onLoad(e);
                 });
 
@@ -207,22 +211,28 @@
 
             settings.ajax.init = function() {
                 console.log('settings.ajax.init');
-
-                // Make ajax call
-                settings.ajax.request();
-                // On success
-                // Check type and fire relevant handler e.g.
-                settings.ajax.miniCart();
-                settings.ajax.popup();
-                settings.ajax.inline();
-            };
-
-            settings.ajax.request = function() {
-                
-            	//build request parameters
-	            var data = $('#product_addtocart_form').serialize();
-	            data += '&isAjax=1';
 	
+	            // Prepare the data
+	            var data = settings.ajax.data();
+                // Make ajax call
+	            
+                settings.ajax.request(data);
+            };
+	
+	        settings.ajax.data = function() {
+		        console.log('settings.ajax.data');
+		
+		        //build request parameters
+		        var data = $('#product_addtocart_form').serialize();
+		        data += '&isAjax=1';
+		        
+		        return data;
+	        };
+
+            settings.ajax.request = function(data) {
+	
+	            console.log('settings.ajax.request');
+            	
 	            try {
 		
 		            $.ajax({
@@ -231,117 +241,103 @@
 			            type : 'post',
 			            data: data,
 			            success: function(data){
-				           
-			            	if(data.status == 'SUCCESS') {
-					
-					            switch(AJAXCART_TYPE) {
-						            case 1: //TYPE_MINICART
-							            settings.ajax.miniCart();
-						            	break;
-						            case 2: //TYPE_INLINE
-							            settings.ajax.inline();
-						            	break;
-						            case 3: //TYPE_POPUP
-							            settings.ajax.popup();
-							            break;
-						            default:
-							            settings.ajax.inline();
-					            }
-					            
+				            if (data.status == 'SUCCESS') {
+				                settings.ajax.success(data);
 				            } else if (data.status == 'ERROR') {
-					            $("#addtocart-validation").html(data.message.replace(/<(?:.|\n)*?>/gm, ''));
+					            settings.ajax.error(data.message);
 				            }
-				
-				            //reset the button after 4 secs
-				            setTimeout(function() {
-					            $("#addtocart-button").removeClass('cart-added').prop('disabled',false);
-				            }, 3500);
 			            },
 			            error: function(){
-				            $("#addtocart-validation").html('There was an error while processing your request. Please try again later.');
-				            //reset the button
-				            $("#addtocar-button").removeClass('cart-adding').prop('disabled',false);
+				            settings.ajax.error('There was an error while processing your request. Please try again later.');
 			            }
 		            });
 	            } catch (e) {
 	            }
-	            
-	            settings.display.loading();
-	            
-	            // If fail
-                settings.display.error();
-                
-	            
-	            // else
                 return this;
             };
 
-            settings.ajax.miniCart =  function() {
-                
-            	// Do some validation
-	            
-	            // set the container
-	            jQuery(".desktop-basket-items").html(data.sidebar);
+            settings.ajax.success = function(data) {
 	
-	            jQuery('.cart-header').toggleClass('cart-header-open');
+	            switch(AJAXCART_TYPE) {
+		            case 1: //TYPE_MINICART
+			            settings.display.miniCart(data);
+			            break;
+		            case 2: //TYPE_INLINE
+			            settings.display.inline(data);
+			            break;
+		            case 3: //TYPE_POPUP
+			            settings.display.popup(data);
+			            break;
+		            default: //TYPE_INLINE
+			            settings.display.inline(data);
+	            }
+            };
+
+            settings.ajax.error = function(data) {
+	            settings.display.error(data.replace(/<(?:.|\n)*?>/gm, ''));
+            };
 	
-	            window.setTimeout(function() {
-		            if (!jQuery('#-sidebar-cart').is(':hover')) {
-			            jQuery('.cart-header-anchor').toggleClass('cart-header-open');
-		            }
-		            basketDropdown(jQuery);
-	            }, 5000);
-	            
-	            
-	            // If error
-                settings.ajax.error();
-                
-	            // else
-                settings.ajax.success();
-            };
-
-            settings.ajax.popup =  function() {
-                // Do some validation
-                // If error
-                settings.ajax.error();
-                // else
-                settings.ajax.success();
-            };
-
-            settings.ajax.inline =  function() {
-                // Do some validation
-                // If error
-                settings.ajax.error();
-                // else
-                settings.ajax.success();
-            };
-
-            settings.ajax.success = function() {
-                settings.display.success();
-            };
-
-            settings.ajax.error = function() {
-                settings.display.error();
-            };
-
-
-            /*
+	        /*
              DISPLAY
              */
 
             settings.display.loading = function() {
                 // Add loading class to button etc.
+				$("#addtocart-button").addClass('adding').prop('disabled',true);
             };
+	
+	        settings.display.loaded = function() {
+		        // Remove loading class to button etc.
+		        $("#addtocart-button").removeClass('adding').prop('disabled',false);
+	        };
 
-            settings.display.success = function() {
-                // Add success class to button etc.
-            };
-
-            settings.display.error = function() {
-                // Add error class to button etc.
-            };
-
-            // Merge defaults with any configured overrides
+            settings.display.miniCart =  function(data) {
+		
+		        // Do some validation
+	
+	            // If error
+	            settings.display.error();
+		
+		        // set the container
+		        jQuery(".desktop-basket-items").html(data.sidebar);
+		
+		        jQuery('.cart-header').toggleClass('cart-header-open');
+		
+		        window.setTimeout(function() {
+			        if (!jQuery('#-sidebar-cart').is(':hover')) {
+				        jQuery('.cart-header-anchor').toggleClass('cart-header-open');
+			        }
+			        basketDropdown(jQuery);
+		        }, 5000);
+		
+		        settings.display.success();
+	        };
+	
+	        settings.display.popup =  function() {
+		        // Do some validation
+		        // If error
+		        settings.display.error();
+		        // else
+		        settings.display.success();
+	        };
+	
+	        settings.display.inline =  function() {
+		        // Do some validation
+		        // If error
+		        settings.display.error();
+		        // else
+		        settings.display.success();
+	        };
+	
+	        settings.display.success = function(data) {
+		        // Add success class to button etc.
+	        };
+	
+	        settings.display.error = function() {
+		        // Add error class to button etc.
+	        };
+	        
+	        // Merge defaults with any configured overrides
             for (var obj in settings) {
                 if (options && options.hasOwnProperty(obj)) {
                     settings[obj] = $.extend( {}, settings[obj], options[obj] );

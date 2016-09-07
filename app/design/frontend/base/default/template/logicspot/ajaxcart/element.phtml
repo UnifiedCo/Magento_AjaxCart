@@ -1,6 +1,7 @@
 <script type="text/javascript">
     //<![CDATA[
     var AJAXCART_ENABLE = <?php var_export(Mage::helper('ajaxcart')->isModuleEnabled()); ?>;
+    var AJAXCART_TYPE   = <?php var_export(Mage::helper('ajaxcart')->getType()); ?>;
     if (typeof jQuery !== 'undefined') {
         jQuery(document).ready(function(){
             jQuery(document).ajaxAddToCart();
