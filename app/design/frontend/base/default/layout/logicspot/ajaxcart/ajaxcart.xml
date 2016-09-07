@@ -21,5 +21,10 @@
             </action>
             <block type="ajaxcart/catalog_product_view_type_json" name="json" as="json" template="logicspot/ajaxcart/catalog/product/json.phtml"/>
         </reference>
+        <reference name="product.info.addtocart">
+            <action method="setTemplate">
+                <template>logicspot/ajaxcart/catalog/product/view/addtocart.phtml</template>
+            </action>
+        </reference>
     </catalog_product_view>
 </layout>
