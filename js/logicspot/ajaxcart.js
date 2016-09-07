@@ -9,7 +9,9 @@
              */
             var settings = {
                 elements: {
-                    addToCartButton: '.btn-cart',
+                    addToCartButton: {
+                        selector: '.btn-cart'
+                    },
                     qty: 'input.qty',
                     target: $(document)
                 },
@@ -62,21 +64,21 @@
             $(document).ready(function(){
 
                 // Check button exists
-                if ($(settings.elements.addToCartButton).length < 1)
+                if ($(settings.elements.addToCartButton.selector).length < 1)
                     settings.validation.error('missing button');
 
                 // Connect button to onClick setting
-                settings.elements.target.on('click', settings.elements.addToCartButton, function(e){
+                settings.elements.target.on('click', settings.elements.addToCartButton.selector, function(e){
                     settings.documentReady.onClick(e);
                 });
 
                 // Connect button to onHover setting
-                settings.elements.target.on('hover', settings.elements.addToCartButton, function(e){
+                settings.elements.target.on('hover', settings.elements.addToCartButton.selector, function(e){
                     settings.documentReady.onHover(e);
                 });
 
                 // Connect button to onLoad setting
-                settings.elements.target.on('load', settings.elements.addToCartButton, function(e){
+                settings.elements.target.on('load', settings.elements.addToCartButton.selector, function(e){
                     settings.documentReady.onLoad(e);
                 });
 
@@ -94,7 +96,10 @@
                 if (productData) {
 
                     // Check there is sufficient stock
-                    var available = settings.validation.validateSimpleChildren ? settings.validation.stockCheck(productData) : true;
+                    var available = true;
+                    if (productData.productType === 'simple' || productData.productType === 'configurable' && settings.validation.validateSimpleChildren) {
+                        available = settings.validation.stockCheck(productData)
+                    }
 
                     if (available) {
                         console.log(productData);
@@ -177,6 +182,9 @@
                 switch (true) {
                     case (qtyInput.length < 1) :
                         settings.validation.error('Missing qty input');
+                        break;
+                    case (!$.isNumeric(qtyInputVal)) :
+                        settings.validation.error('Qty NaN');
                         break;
                     case (typeof qtyInputVal == 'undefined' || qtyInputVal < 1) :
                         settings.validation.error('Invalid qty value');
