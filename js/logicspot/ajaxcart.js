@@ -219,13 +219,14 @@
             };
 
             settings.ajax.request = function() {
-                //build request parameters
-	            var data = jQuery('#product_addtocart_form').serialize();
+                
+            	//build request parameters
+	            var data = $('#product_addtocart_form').serialize();
 	            data += '&isAjax=1';
 	
 	            try {
 		
-		            jQuery.ajax({
+		            $.ajax({
 			            url: url,
 			            dataType: 'json',
 			            type : 'post',
@@ -247,34 +248,25 @@
 						            default:
 							            settings.ajax.inline();
 					            }
-					
 					            
 				            } else if (data.status == 'ERROR') {
-					            jQuery("#add-to-basket-validation").html(data.message.replace(/<(?:.|\n)*?>/gm, ''));
+					            $("#addtocart-validation").html(data.message.replace(/<(?:.|\n)*?>/gm, ''));
 				            }
 				
 				            //reset the button after 4 secs
 				            setTimeout(function() {
-					            jQuery(button).removeClass('cart-added').prop('disabled',false);
+					            $("#addtocart-button").removeClass('cart-added').prop('disabled',false);
 				            }, 3500);
 			            },
 			            error: function(){
-				            jQuery("#add-to-basket-validation").html('There was an error while processing your request. Please try again later.');
+				            $("#addtocart-validation").html('There was an error while processing your request. Please try again later.');
 				            //reset the button
-				            jQuery(button).removeClass('cart-adding').prop('disabled',false);
+				            $("#addtocar-button").removeClass('cart-adding').prop('disabled',false);
 			            }
 		            });
-		
-		            jQuery.event.trigger('logicspot_ajaxaddtocart_after', obj);
 	            } catch (e) {
 	            }
 	            
-	            
-	            
-	            
-	            
-	            
-	
 	            settings.display.loading();
 	            
 	            // If fail
@@ -290,7 +282,7 @@
             	// Do some validation
 	            
 	            // set the container
-	            jQuery(".minicart-container").html(data.sidebar);
+	            jQuery(".desktop-basket-items").html(data.sidebar);
 	
 	            jQuery('.cart-header').toggleClass('cart-header-open');
 	

@@ -60,7 +60,7 @@
 				</div>
 			<?php endif;?>
 
-			<?php echo $this->getChildHtml('json_object');?>
+			<?php echo $this->getChildHtml('json');?>
 
 			<?php if ($this->canEmailToFriend()): ?>
 				<p class="email-friend"><a href="<?php echo $this->helper('catalog/product')->getEmailToFriendUrl($_product) ?>"><?php echo $this->__('Email to a Friend') ?></a></p>
