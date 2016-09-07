@@ -24,7 +24,8 @@
                     checkConfigurableAttributes: null,
                     stockCheck: null,
                     error: null,
-                    success: null
+                    success: null,
+                    validateSimpleChildren: true
                 },
                 ajax: {
                     init: null,
@@ -93,7 +94,7 @@
                 if (productData) {
 
                     // Check there is sufficient stock
-                    var available = settings.validation.stockCheck(productData);
+                    var available = settings.validation.validateSimpleChildren ? settings.validation.stockCheck(productData) : true;
 
                     if (available) {
                         console.log(productData);
@@ -152,10 +153,11 @@
                 var selectAttrId = select.attr('id').substring(9); // e.g. Get "180" from "attribute180"
                 var selectAttrOption = select.val();
 
+                // Get the simple product object, which contains the qty
                 try {
                     var simpleProductId = productData.configuration.attributes[selectAttrId].options[selectAttrOption].products[0];
                 } catch(err) {
-                    settings.validation.error('Could not find child product data');
+                    settings.validation.error(err);
                     return false;
                 }
 
@@ -170,7 +172,6 @@
                 var qtyInput = $(settings.elements.qty);
                 var qtyInputVal = qtyInput.val();
                 var stock = productData.productType === 'configurable' ? productData.products[productData.selectedProduct].Qty : productData.qty;
-
                 var isValid = false;
 
                 switch (true) {
