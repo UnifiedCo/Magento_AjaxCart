@@ -19,7 +19,7 @@
             <action method="setTemplate">
                 <template>logicspot/ajaxcart/catalog/product/view.phtml</template>
             </action>
-            <block type="catalog/product_view_type_configurable" name="json_object" as="json_object" template="logicspot/ajaxcart/catalog/product/json_object.phtml"/>
+            <block type="ajaxcart/catalog_product_view_type_json" name="json" as="json" template="logicspot/ajaxcart/catalog/product/json.phtml"/>
         </reference>
     </catalog_product_view>
 </layout>
