@@ -27,12 +27,31 @@
 <?php $_product = $this->getProduct(); ?>
 <?php $buttonTitle = $this->__('Add to Cart'); ?>
 <?php if($_product->isSaleable()): ?>
-	<div class="add-to-cart">
-		<?php if(!$_product->isGrouped()): ?>
-			<label for="qty"><?php echo $this->__('Qty:') ?></label>
-			<input type="text" name="qty" id="qty" maxlength="12" value="<?php echo $this->getProductDefaultQty() * 1 ?>" title="<?php echo Mage::helper('core')->quoteEscape($this->__('Qty')) ?>" class="input-text qty" />
-		<?php endif; ?>
-		<button type="button" title="<?php echo $buttonTitle ?>" id="product-addtocart-button" class="button btn-cart" onclick="productAddToCartForm.submit(this)"><span><span><?php echo $buttonTitle ?></span></span></button>
-		<?php echo $this->getChildHtml('', true, true) ?>
+	<div class="row collapse add-to-cart">
+		<div class="small-2 medium-1 columns">
+			<?php if(!$_product->isGrouped()): ?>
+				<input name="qty"
+				       id="qty"
+				       type="text"
+				       inputmode="numeric"
+				       pattern="[0-9]*"
+				       maxlength="4"
+				       value="<?php echo $this->getProductDefaultQty() * 1 ?>"
+				       title="<?php echo Mage::helper('core')->quoteEscape($this->__('Quantity')) ?>"
+				       aria-label="<?php echo Mage::helper('core')->quoteEscape($this->__('Quantity')) ?>"
+				       class="text-center qty"
+				       required
+				       placeholder="<?php echo $this->__('Qty'); ?>" />
+			<?php endif; ?>
+		</div>
+		<div class="small-10 medium-11 columns">
+			<button type="submit"
+			        title="<?php echo $buttonTitle ?>"
+			        id="product-addtocart-button"
+			        class="button expand btn-cart" />
+			<?php echo $buttonTitle ?>
+			</button>
+			<?php echo $this->getChildHtml('', true, true) ?>
+		</div>
 	</div>
 <?php endif; ?>

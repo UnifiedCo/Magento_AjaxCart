@@ -70,6 +70,8 @@
 				
 				console.log('document.ready');
 				
+				console.log($(settings.elements.addToCartButton).length);
+				
 				// Check button exists
 				if ($(settings.elements.addToCartButton).length < 1)
 					settings.validation.error('missing button');
@@ -216,6 +218,7 @@
 			};
 			
 			settings.validation.error = function(error) {
+				console.log('settings.validation.error');
 				console.log('ajaxcart.js: ' + error);
 				settings.display.error();
 			};
