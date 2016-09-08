@@ -68,6 +68,8 @@
 			
 			$(document).ready(function(){
 				
+				console.log('document.ready');
+				
 				// Check button exists
 				if ($(settings.elements.addToCartButton).length < 1)
 					settings.validation.error('missing button');
@@ -214,7 +216,6 @@
 				settings.ajax.init();
 			};
 			
-			
 			/*
 			 AJAX
 			 */
@@ -228,7 +229,6 @@
 				
 				
 				settings.ajax.request(data);
-				
 			};
 			
 			settings.ajax.data = function() {
@@ -242,7 +242,6 @@
 			};
 			
 			settings.ajax.request = function(data) {
-				
 				console.log('settings.ajax.request');
 				
 				try {
@@ -274,7 +273,7 @@
 			
 			settings.ajax.success = function(data) {
 				
-				switch(AJAXCART_TYPE) {
+				switch(settings.init.ajaxCartType) {
 					case 1: //TYPE_MINICART
 						settings.display.miniCart(data);
 						break;

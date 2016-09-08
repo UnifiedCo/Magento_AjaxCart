@@ -3,11 +3,13 @@
     //<![CDATA[
     if (typeof jQuery !== 'undefined') {
         jQuery(document).ready(function(){
-        	lsAddCartSettings.init = {
-		        ajaxCartEnable = '<?php var_export(Mage::helper('ajaxcart')->isModuleEnabled()); ?>',
-		        ajaxCartType = '<?php var_export(Mage::helper('ajaxcart')->getType()); ?>'
+	        var ajaxAddToCart = {
+		        init: {
+			        ajaxCartEnable: <?php var_export(Mage::helper('ajaxcart')->isModuleEnabled()); ?>,
+			        ajaxCartType: <?php var_export(Mage::helper('ajaxcart')->getType()); ?>
+		        }
 	        };
-            jQuery(document).ajaxAddToCart(lsAddCartSettings);
+            jQuery(document).ajaxAddToCart(ajaxAddToCart);
         });
     }
     //]]>
