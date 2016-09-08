@@ -1,8 +1,10 @@
 <?php require_once Mage::getBaseDir() . '/app/code/core/Mage/Checkout/controllers/CartController.php';
 
 class LogicSpot_AjaxCart_IndexController extends Mage_Checkout_CartController {
-    public function addAction() {
-        $cart = $this->_getCart();
+
+	public function addAction() {
+
+		$cart = $this->_getCart();
         $params = $this->getRequest()->getParams();
         $response = array(
             "error" => false,
@@ -12,7 +14,8 @@ class LogicSpot_AjaxCart_IndexController extends Mage_Checkout_CartController {
         );
 
         try {
-            if (isset($params['qty'])) {
+
+        	if (isset($params['qty'])) {
                 $filter = new Zend_Filter_LocalizedToNormalized(
                     array('locale' => Mage::app()->getLocale()->getLocaleCode())
                 );
@@ -27,6 +30,7 @@ class LogicSpot_AjaxCart_IndexController extends Mage_Checkout_CartController {
              */
             if (!$product) {
                 $response['error'] = true;
+	            $response['message'] = $this->__('Unable to find Product ID');
                 $this->_reply($response);
                 return;
             }
@@ -46,10 +50,13 @@ class LogicSpot_AjaxCart_IndexController extends Mage_Checkout_CartController {
 
             if (!$cart->getQuote()->getHasError()) {
                 $response['message'] = $this->__('%s was added to your shopping cart.', Mage::helper('core')->escapeHtml($product->getName()));
+	            $response['qty'] = $params['qty'];
+	            $this->loadLayout();
+	            $sidebar_block = $this->getLayout()->getBlock('cart_sidebar');
+	            Mage::register('referrer_url', $this->_getRefererUrl());
+	            $sidebar = $sidebar_block->toHtml();
+	            $response['sidebar'] = $sidebar;
             }
-
-            $response['count'] = $cart->getItemsQty();
-            $response['image'] = "<img src='" . $product->getSmallImageUrl() . "' alt='" . $product->getName . "' />";
 
         } catch (Mage_Core_Exception $e) {
             if ($this->_getSession()->getUseNotice(true)) {
