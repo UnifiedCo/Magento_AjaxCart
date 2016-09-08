@@ -172,8 +172,9 @@
 				// Validate that user has selected attribute options
 				var selects = $('.super-attribute-select');
 				selects.each(function(){
-					if (!this.value) {
-						settings.display.error('Please complete all form fields');
+					var el = $(this);
+					if (el.prop('required') && !this.value) {
+						settings.display.error('Please specify all required options');
 						isValid = false;
 					}
 				});
@@ -181,6 +182,7 @@
 				if (!isValid) return false;
 				
 				// Get the last select, from which we can infer the chosen simple product
+				// TODO: There should be a logical way to do this without relying on HTML sort order
 				var select = $('.super-attribute-select').last();
 				var selectAttrId = select.attr('id').substring(9); // e.g. Get "180" from "attribute180"
 				var selectAttrOption = select.val();
@@ -250,8 +252,6 @@
 				// Prepare the data
 				var data = settings.ajax.data();
 				// Make ajax call
-				
-				
 				settings.ajax.request(data);
 			};
 			
