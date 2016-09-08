@@ -97,6 +97,8 @@
 			
 			settings.validation.init = function (button) {
 				
+				console.log('settings.validation.init');
+				
 				// Get the product configuration data
 				var productData = settings.validation.getProductConfiguration(button);
 				
@@ -120,6 +122,8 @@
 			
 			settings.validation.getProductConfiguration = function(button) {
 				
+				console.log('settings.validation.getProductConfiguration');
+				
 				var data = JSON.parse($(button).closest('form').find('div[data-product]').attr('data-product'));
 				var requiredProps = ['productId','productType','Qty'];
 				
@@ -141,6 +145,8 @@
 			};
 			
 			settings.validation.checkConfigurableAttributes = function(productData) {
+				
+				console.log('settings.validation.checkConfigurableAttributes');
 				
 				if (!productData.configuration || !productData.products) {
 					settings.validation.error('missing configurable data');
@@ -181,6 +187,8 @@
 			
 			settings.validation.stockCheck = function (productData) {
 				
+				console.log('settings.validation.stockCheck');
+				
 				var qtyInput = $(settings.elements.qty);
 				var qtyInputVal = qtyInput.val();
 				var stock = productData.productType === 'configurable' ? productData.products[productData.selectedProduct].Qty : productData.qty;
@@ -213,6 +221,8 @@
 			};
 			
 			settings.validation.success = function() {
+				console.log('settings.validation.success');
+				
 				settings.ajax.init();
 			};
 			
@@ -273,6 +283,8 @@
 			
 			settings.ajax.success = function(data) {
 				
+				console.log('settings.ajax.success');
+				
 				switch(settings.init.ajaxCartType) {
 					case 1: //TYPE_MINICART
 						settings.display.miniCart(data);
@@ -291,6 +303,8 @@
 			};
 			
 			settings.ajax.error = function(data) {
+				console.log('settings.ajax.error');
+				
 				settings.display.error(data.replace(/<(?:.|\n)*?>/gm, ''));
 			};
 			
@@ -299,16 +313,22 @@
 			 */
 			
 			settings.display.loading = function() {
+				console.log('settings.display.loading');
+				
 				// Add loading class to button etc.
 				$("#addtocart-button").addClass('adding').prop('disabled',true);
 			};
 			
 			settings.display.loaded = function() {
+				console.log('settings.display.loaded');
+				
 				// Remove loading class to button etc.
 				$("#addtocart-button").removeClass('adding').prop('disabled',false);
 			};
 			
 			settings.display.miniCart =  function(data) {
+				
+				console.log('settings.display.miniCart');
 				
 				// set the container
 				jQuery(".desktop-basket-items").html(data.sidebar);
@@ -327,20 +347,28 @@
 			
 			settings.display.popup =  function() {
 				
+				console.log('settings.display.miniCart');
+				
 				settings.display.success();
 			};
 			
 			settings.display.inline =  function() {
 				
+				console.log('settings.display.inline');
+				
 				settings.display.success();
 			};
 			
 			settings.display.success = function(data) {
+				console.log('settings.display.success');
+				
 				// Add success class to button etc.
 				settings.display.loaded();
 			};
 			
 			settings.display.error = function() {
+				console.log('settings.display.error');
+				
 				// Add error class to button etc.
 				settings.display.loaded();
 			};
