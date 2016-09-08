@@ -41,7 +41,7 @@
 				display: {
 					loading: null,
 					miniCart: null,
-					xxx: null,
+					miniCartAfter: null,
 					popup: null,
 					inline: null,
 					success: null,
@@ -349,24 +349,12 @@
 				
 				$("#cart_sidebar").html(data.sidebar);
 				
-				settings.display.xxx();
-				
-				/*// set the container
-				jQuery(".desktop-basket-items").html(data.sidebar);
-				
-				jQuery('.cart-header').toggleClass('cart-header-open');
-				
-				window.setTimeout(function() {
-					if (!jQuery('#-sidebar-cart').is(':hover')) {
-						jQuery('.cart-header-anchor').toggleClass('cart-header-open');
-					}
-					basketDropdown(jQuery);
-				}, 5000);*/
+				settings.display.miniCartAfter();
 				
 				settings.display.success();
 			};
 			
-			settings.display.xxx = function() {
+			settings.display.miniCartAfter = function() {
 				
 				settings.elements.target.foundation('clearing', 'reflow');
 				
@@ -379,7 +367,7 @@
 				
 				var overlay = $('<div class="ajaxcart-overlay"></div>');
 				var modal = $('<div class="ajaxcart-modal"></div>');
-				var modalContent = $('<div class="ajaxcart-modal-content"></div>');
+				var modalContent = $('<div class="ajaxcart-modal-content">' + data.message +  '</div>');
 				var close = $('<button class="ajaxcart-close"><span class="ajaxcart-close-text">close</span>&#10006;</button>');
 				
 				$('body').append(overlay);
@@ -390,10 +378,10 @@
 				settings.display.success();
 			};
 			
-			settings.display.inline =  function() {
+			settings.display.inline =  function(data) {
 				
 				settings.console.log('settings.display.inline');
-				settings.display.message('success','Ajax response goes here');
+				settings.display.message('success',data.message);
 				settings.display.success();
 			};
 			

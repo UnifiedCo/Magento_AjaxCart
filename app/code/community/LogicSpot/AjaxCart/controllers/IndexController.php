@@ -7,6 +7,7 @@ class LogicSpot_AjaxCart_IndexController extends Mage_Checkout_CartController {
 		$cart = $this->_getCart();
         $params = $this->getRequest()->getParams();
         $response = array(
+        	"ajaxcart" => true,
             "error" => false,
             "message" => '',
             "image" => '',
@@ -51,11 +52,15 @@ class LogicSpot_AjaxCart_IndexController extends Mage_Checkout_CartController {
             if (!$cart->getQuote()->getHasError()) {
                 $response['message'] = $this->__('%s was added to your shopping cart.', Mage::helper('core')->escapeHtml($product->getName()));
 	            $response['qty'] = $params['qty'];
-	            $this->loadLayout();
-	            $sidebar_block = $this->getLayout()->getBlock('cart_sidebar');
-	            Mage::register('referrer_url', $this->_getRefererUrl());
-	            $sidebar = $sidebar_block->toHtml();
-	            $response['sidebar'] = $sidebar;
+
+	            if (Mage::helper('ajaxcart')->getType() == LogicSpot_AjaxCart_Helper_Data::TYPE_MINICART) {
+
+		            $this->loadLayout();
+		            $sidebar_block = $this->getLayout()->getBlock('cart_sidebar');
+		            Mage::register('referrer_url', $this->_getRefererUrl());
+		            $sidebar = $sidebar_block->toHtml();
+		            $response['sidebar'] = $sidebar;
+	            }
             }
 
         } catch (Mage_Core_Exception $e) {
