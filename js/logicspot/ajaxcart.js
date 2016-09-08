@@ -48,10 +48,7 @@
 					error: null,
 					message: null,
 					resetButton: null,
-<<<<<<< HEAD
-=======
 					consoleLog: null,
->>>>>>> ddcfe9828efcf1051f5fec934b3a83b723bd6cd5
 					defaultAjaxMessage: 'There was an error while processing your request. Please try again later.'
 				},
 				console: {
