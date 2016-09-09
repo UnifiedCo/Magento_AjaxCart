@@ -15,7 +15,8 @@
 				elements: {
 					addToCartButton: '.btn-cart',
 					qty: 'input.qty',
-					target: $(document)
+					target: $(document),
+					minicartTarget: 'desktop-basket'
 				},
 				documentReady: {
 					onClick: null,
@@ -50,7 +51,8 @@
 					resetButton: null,
 					consoleLog: null,
 					defaultAjaxMessage: 'There was an error while processing your request. Please try again later.',
-					successResetDelay: 4000
+					successResetDelay: 4000,
+					minicartCloseDelay: 6000
 				},
 				console: {
 					active: true,
@@ -358,11 +360,22 @@
 			settings.display.miniCartAfter = function() {
 
 				settings.console.log('settings.display.miniCartAfter');
-				
+
+				// Reinit foundation dropdowns
 				settings.elements.target.foundation('dropdown', 'reflow');
-				
-				// $('#desktop-basket').trigger('click.fndtn.dropdown');
-				// Foundation.libs.dropdown.open($('#desktop-basket'), $('a[data-dropdown="desktop-basket"]'));
+
+				// Open mini cart dropdown
+				var minicartTrigger = jQuery('a[data-dropdown="' + settings.elements.minicartTarget + '"]');
+				var minicartDropdown = jQuery('#' + settings.elements.minicartTarget);
+				Foundation.libs.dropdown.open(minicartDropdown,minicartTrigger);
+
+				// Close minicart after X seconds, if user is not hovering
+				window.setTimeout(function(){
+					if (!minicartDropdown.is(':hover')) {
+						Foundation.libs.dropdown.close(minicartDropdown);
+					}
+				},settings.display.minicartCloseDelay);
+
 			};
 			
 			settings.display.popup =  function(data) {
@@ -419,7 +432,6 @@
 				var button = $(settings.elements.addToCartButton);
 				button.removeClass('btn-cart-adding').addClass('btn-cart-added').find('.btn-cart-state').text('Added');
 				window.setTimeout(function(){
-					settings.console.log('timeout');
 					settings.display.resetButton();
 				},settings.display.successResetDelay);
 			};
