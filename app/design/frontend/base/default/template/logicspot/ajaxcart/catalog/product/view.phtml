@@ -1,0 +1,153 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE_AFL.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magento.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Magento to newer
+ * versions in the future. If you wish to customize Magento for your
+ * needs please refer to http://www.magento.com for more information.
+ *
+ * @category    design
+ * @package     base_default
+ * @copyright   Copyright (c) 2006-2016 X.commerce, Inc. and affiliates (http://www.magento.com)
+ * @license     http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ */
+
+/**
+ * Product view template
+ *
+ * @see Mage_Catalog_Block_Product_View
+ * @see Mage_Review_Block_Product_View
+ */
+?>
+<?php $_helper = $this->helper('catalog/output'); ?>
+<?php $_product = $this->getProduct(); ?>
+<script type="text/javascript">
+	var optionsPrice = new Product.OptionsPrice(<?php echo $this->getJsonConfig() ?>);
+</script>
+<div id="messages_product_view"><?php echo $this->getMessagesBlock()->toHtml() ?></div>
+
+
+<div class="row product-view">
+	<div class="small-12 medium-6 columns">
+		<?php echo $this->getChildHtml('media') ?>
+	</div>
+	<div class="small-12 medium-6 columns">
+		<form action="<?php echo $this->getSubmitUrl($_product, array('_secure' => $this->_isSecure())) ?>"
+			  method="post"
+			  id="product_addtocart_form"
+			<?php if($_product->getOptions()): ?> enctype="multipart/form-data"<?php endif; ?>
+			  data-abide>
+			<?php echo $this->getBlockHtml('formkey') ?>
+			<input type="hidden" name="product" value="<?php echo $_product->getId() ?>" />
+			<input type="hidden" name="related_product" id="related-products-field" value="" />
+			<h1 class="product-name"><?php echo $_helper->productAttribute($_product, $_product->getName(), 'name') ?></h1>
+
+			<?php if ($_product->getShortDescription()):?>
+				<div class="short-description">
+					<?php echo $_helper->productAttribute($_product, nl2br($_product->getShortDescription()), 'short_description') ?>
+				</div>
+			<?php endif;?>
+
+			<?php echo $this->getChildHtml('json');?>
+
+			<?php if ($this->canEmailToFriend()): ?>
+				<p class="email-friend"><a href="<?php echo $this->helper('catalog/product')->getEmailToFriendUrl($_product) ?>"><?php echo $this->__('Email to a Friend') ?></a></p>
+			<?php endif; ?>
+
+			<?php if(Mage::getStoreConfig('catalog/review/enable_customer_reviews')): ?>
+				<?php echo $this->getReviewsSummaryHtml($_product, false, true)?>
+			<?php endif; ?>
+
+			<?php echo $this->getChildHtml('alert_urls') ?>
+			<?php echo $this->getChildHtml('product_type_data') ?>
+			<?php echo $this->getTierPriceHtml() ?>
+			<?php echo $this->getChildHtml('extrahint') ?>
+
+			<?php if (!$this->hasOptions()):?>
+				<?php if($_product->isSaleable()): ?>
+					<?php echo $this->getChildHtml('addtocart') ?>
+					<?php if( $this->helper('wishlist')->isAllow() || $_compareUrl=$this->helper('catalog/product_compare')->getAddUrl($_product)): ?>
+						<span class="or"><?php echo $this->__('OR') ?></span>
+					<?php endif; ?>
+				<?php endif; ?>
+				<?php echo $this->getChildHtml('addto') ?>
+				<?php echo $this->getChildHtml('extra_buttons') ?>
+			<?php elseif (!$_product->isSaleable()): ?>
+				<?php echo $this->getChildHtml('addto') ?>
+			<?php endif; ?>
+
+			<?php echo $this->getChildHtml('other');?>
+
+			<?php if ($_product->isSaleable() && $this->hasOptions()):?>
+				<?php echo $this->getChildChildHtml('container1', '', true, true) ?>
+			<?php endif;?>
+
+			<?php if ($_product->isSaleable() && $this->hasOptions()):?>
+				<?php echo $this->getChildChildHtml('container2', '', true, true) ?>
+			<?php endif;?>
+		</form>
+		<div class="row product-additional">
+			<div class="small-12 columns">
+				<?php
+				$tabs = array();
+				$tabsCount = 0;
+				foreach ($this->getChildGroup('detailed_info', 'getChildHtml') as $alias => $html):
+					if($tabsCount == 0):
+						$currentActive = true;
+					else:
+						$currentActive = false;
+					endif;
+					$tabs[] = array(
+						'title' => $this->getChildData($alias, 'title'),
+						'alias' => 'box-' . $alias,
+						'html' => $html,
+						'active' => $currentActive
+					);
+					$tabsCount++;
+				endforeach;
+				?>
+				<?php if(count($tabs)): ?>
+					<ul class="tabs" data-tab role="tablist">
+						<?php foreach($tabs as $tab): ?>
+							<li class="tab-title<?php if($tab['active']){ echo ' active'; } ?>" role="presentation">
+								<a href="#<?php echo $tab['alias']; ?>"
+								   role="tab"
+								   tabindex="0"
+								   aria-selected="true"
+								   aria-controls="panel2-1"><?php echo $tab['title']; ?></a>
+							</li>
+						<?php endforeach; ?>
+					</ul>
+					<div class="tabs-content">
+						<?php foreach($tabs as $tab): ?>
+							<div role="tabpanel"
+								 aria-hidden="false"
+								 class="content<?php if($tab['active']){ echo ' active'; } ?>"
+								 id="<?php echo $tab['alias']; ?>">
+								<?php echo $tab['html']; ?>
+							</div>
+						<?php endforeach; ?>
+					</div>
+				<?php endif; ?>
+				<?php echo $this->getChildHtml('product_additional_data') ?>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="row product-relationships">
+	<div class="small-12 columns">
+		<?php echo $this->getChildHtml('upsell_products') ?>
+	</div>
+</div>
