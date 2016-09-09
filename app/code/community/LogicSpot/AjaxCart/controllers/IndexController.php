@@ -92,12 +92,12 @@ class LogicSpot_AjaxCart_IndexController extends Mage_Checkout_CartController {
 
 		if (Mage::helper('ajaxcart')->isInlineNotificationsEnabled()) {
 
-			$sessionMessages = Mage::getSingleton('checkout/session')->getMessages()->getItems();
-			$output = array();
-			foreach ($sessionMessages as $message) {
-				$output[] = $message->getText();
-			}
-			$response['notifications'] = implode("<br/>", $output);
+			$sessionMessages = Mage::getSingleton('checkout/session')->getMessages();
+
+			$block = $this->getLayout()->getMessagesBlock();
+			$block->addMessages($sessionMessages);
+
+			$response['notifications'] = $block->getMessagesBlock()->toHtml();
 		}
 
         $this->_reply($response);
