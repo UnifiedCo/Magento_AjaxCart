@@ -11,7 +11,8 @@ class LogicSpot_AjaxCart_IndexController extends Mage_Checkout_CartController {
             "error" => false,
             "message" => '',
             "image" => '',
-            "count" => $cart->getItemsQty()
+            "count" => $cart->getItemsQty(),
+	        "notifications" => ''
         );
 
         try {
@@ -50,7 +51,9 @@ class LogicSpot_AjaxCart_IndexController extends Mage_Checkout_CartController {
             );
 
             if (!$cart->getQuote()->getHasError()) {
-                $response['message'] = $this->__('%s was added to your shopping cart.', Mage::helper('core')->escapeHtml($product->getName()));
+                $message = $this->__('%s was added to your shopping cart.', Mage::helper('core')->escapeHtml($product->getName()));
+	            $this->_getSession()->addSuccess($message);
+	            $response['message'] = $message;
 	            $response['qty'] = $params['qty'];
 
 	            if (Mage::helper('ajaxcart')->getType() == LogicSpot_AjaxCart_Helper_Data::TYPE_MINICART) {
@@ -74,16 +77,28 @@ class LogicSpot_AjaxCart_IndexController extends Mage_Checkout_CartController {
                 foreach ($messages as $message) {
 	            	$message = Mage::helper('core')->escapeHtml($message);
                     $this->_getSession()->addError($message);
-	                $response['message'] .= $message;
                 }
+	            $response['message'] = implode("<br/>", $messages);
             }
 
             $response['error'] = true;
         } catch (Exception $e) {
-            $this->_getSession()->addException($e, $this->__('Cannot add the item to shopping cart.'));
-            Mage::logException($e);
+        	$message = $this->__('Cannot add the item to shopping cart.');
+            $this->_getSession()->addException($e, $message);
+	        $response['message'] = $message;
+	        Mage::logException($e);
             $response['error'] = true;
         }
+
+		if (Mage::helper('ajaxcart')->isInlineNotificationsEnabled()) {
+
+			$sessionMessages = Mage::getSingleton('checkout/session')->getMessages()->getItems();
+			$output = array();
+			foreach ($sessionMessages as $message) {
+				$output[] = $message->getText();
+			}
+			$response['notifications'] = implode("<br/>", $output);
+		}
 
         $this->_reply($response);
     }
