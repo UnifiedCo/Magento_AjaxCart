@@ -49,7 +49,8 @@
 					message: null,
 					resetButton: null,
 					consoleLog: null,
-					defaultAjaxMessage: 'There was an error while processing your request. Please try again later.'
+					defaultAjaxMessage: 'There was an error while processing your request. Please try again later.',
+					successResetDelay: 4000
 				},
 				console: {
 					active: true,
@@ -355,11 +356,14 @@
 			};
 			
 			settings.display.miniCartAfter = function() {
+
+				settings.console.log('settings.display.miniCartAfter');
 				
-				settings.elements.target.foundation('clearing', 'reflow');
+				settings.elements.target.foundation('dropdown', 'reflow');
 				
-				//$('#desktop-basket').trigger('click.fndtn.dropdown');
-			}
+				// $('#desktop-basket').trigger('click.fndtn.dropdown');
+				// Foundation.libs.dropdown.open($('#desktop-basket'), $('a[data-dropdown="desktop-basket"]'));
+			};
 			
 			settings.display.popup =  function(data) {
 				
@@ -392,7 +396,7 @@
 				// TODO: Make this work on category pages as well
 				var messagesWrapper = $('#messages_product_view');
 				var messagesList = messagesWrapper.children('ul.messages');
-				
+
 				if (messagesWrapper.length > 0) {
 					
 					messagesList = messagesList.length > 0 ? messagesList : $('<ul class="messages"></ul>');
@@ -417,7 +421,7 @@
 				window.setTimeout(function(){
 					settings.console.log('timeout');
 					settings.display.resetButton();
-				},4000);
+				},settings.display.successResetDelay);
 			};
 			
 			settings.display.error = function(msg) {

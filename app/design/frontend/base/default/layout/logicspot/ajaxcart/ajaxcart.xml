@@ -1,12 +1,12 @@
 <?xml version="1.0" ?>
 <layout>
     <default>
-        <head>
+        <reference name="head">
             <action method="addItem">
                 <type>js_css</type>
                 <name>logicspot/ajaxcart.css</name>
             </action>
-        </head>
+        </reference>
         <reference name="delayed_js">
             <action method="addJs">
                 <script>logicspot/ajaxcart.js</script>
