@@ -11,7 +11,7 @@
 				init: {
 					ajaxCartEnable: null,
 					ajaxCartType: null,
-					isInlineNotificationsEnabled: null
+					isInlineNotificationsEnabled: false
 				},
 				elements: {
 					addToCartButton: '.btn-cart',
@@ -226,7 +226,7 @@
 						settings.display.error('Please select a valid quantity');
 						break;
 					case (qtyInputVal > stock) :
-						settings.display.error('There is insufficient stock to fulfill your request');
+						settings.display.error('The requested quantity is not available.');
 						break;
 					default :
 						isValid = true;
@@ -317,6 +317,8 @@
 					default: //TYPE_INLINE
 						settings.display.inline(data);
 				}
+
+				settings.display.notifications(data);
 
 			};
 			
@@ -426,6 +428,16 @@
 				}
 				
 			};
+
+			settings.display.notifications = function(data) {
+
+			    settings.console.log('settings.display.notification');
+
+			    if (settings.init.isInlineNotificationsEnabled) {
+
+                }
+
+            };
 			
 			settings.display.success = function(data) {
 				settings.console.log('settings.display.success');
