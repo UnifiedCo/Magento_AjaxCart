@@ -65,12 +65,16 @@ class LogicSpot_AjaxCart_IndexController extends Mage_Checkout_CartController {
 
         } catch (Mage_Core_Exception $e) {
             if ($this->_getSession()->getUseNotice(true)) {
-                $this->_getSession()->addNotice(Mage::helper('core')->escapeHtml($e->getMessage()));
+            	$message = Mage::helper('core')->escapeHtml($e->getMessage());
+                $this->_getSession()->addNotice($message);
+	            $response['message'] = $message;
             }
             else {
                 $messages = array_unique(explode("\n", $e->getMessage()));
                 foreach ($messages as $message) {
-                    $this->_getSession()->addError(Mage::helper('core')->escapeHtml($message));
+	            	$message = Mage::helper('core')->escapeHtml($message);
+                    $this->_getSession()->addError($message);
+	                $response['message'] .= $message;
                 }
             }
 
