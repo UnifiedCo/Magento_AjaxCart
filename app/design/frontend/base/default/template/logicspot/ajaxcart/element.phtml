@@ -6,7 +6,8 @@
 	        var ajaxAddToCart = {
 		        init: {
 			        ajaxCartEnable: <?php var_export(Mage::helper('ajaxcart')->isModuleEnabled()); ?>,
-			        ajaxCartType: <?php var_export(Mage::helper('ajaxcart')->getType()); ?>
+			        ajaxCartType: <?php var_export(Mage::helper('ajaxcart')->getType()); ?>,
+			        isInlineNotificationsEnabled: <?php var_export(Mage::helper('ajaxcart')->isInlineNotificationsEnabled()); ?>
 		        }
 	        };
             jQuery(document).ajaxAddToCart(ajaxAddToCart);

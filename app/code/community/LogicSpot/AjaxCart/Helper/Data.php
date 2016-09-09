@@ -41,7 +41,7 @@ class LogicSpot_AjaxCart_Helper_Data extends Mage_Core_Helper_Abstract
         return Mage::getStoreConfig(self::XML_PATH_TYPE);
     }
 
-    public function getInlineNotificationsEnabled() {
+    public function isInlineNotificationsEnabled() {
         return Mage::getStoreConfigFlag(self::XML_PATH_INLINE_NOTIFICATIONS);
     }
 }

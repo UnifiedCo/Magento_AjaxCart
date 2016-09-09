@@ -10,7 +10,8 @@
 			var settings = {
 				init: {
 					ajaxCartEnable: null,
-					ajaxCartType: null
+					ajaxCartType: null,
+					isInlineNotificationsEnabled: null
 				},
 				elements: {
 					addToCartButton: '.btn-cart',
