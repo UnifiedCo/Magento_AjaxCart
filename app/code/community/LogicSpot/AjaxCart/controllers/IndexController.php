@@ -51,9 +51,7 @@ class LogicSpot_AjaxCart_IndexController extends Mage_Checkout_CartController {
             );
 
             if (!$cart->getQuote()->getHasError()) {
-                $message = $this->__('%s was added to your shopping cart.', Mage::helper('core')->escapeHtml($product->getName()));
-	            $this->_getSession()->addSuccess($message);
-	            $response['message'] = $message;
+	            $this->_getSession()->addSuccess($this->__('%s was added to your shopping cart.', Mage::helper('core')->escapeHtml($product->getName())));
 	            $response['qty'] = $params['qty'];
 
 	            if (Mage::helper('ajaxcart')->getType() == LogicSpot_AjaxCart_Helper_Data::TYPE_MINICART) {
@@ -67,35 +65,27 @@ class LogicSpot_AjaxCart_IndexController extends Mage_Checkout_CartController {
             }
 
         } catch (Mage_Core_Exception $e) {
-            if ($this->_getSession()->getUseNotice(true)) {
-            	$message = Mage::helper('core')->escapeHtml($e->getMessage());
-                $this->_getSession()->addNotice($message);
-	            $response['message'] = $message;
-            }
-            else {
-                $messages = array_unique(explode("\n", $e->getMessage()));
-                foreach ($messages as $message) {
-	            	$message = Mage::helper('core')->escapeHtml($message);
-                    $this->_getSession()->addError($message);
-                }
-	            $response['message'] = implode("<br/>", $messages);
-            }
 
-            $response['error'] = true;
+        	$this->_getSession()->addNotice(Mage::helper('core')->escapeHtml($e->getMessage()));
+	        $response['error'] = true;
         } catch (Exception $e) {
-        	$message = $this->__('Cannot add the item to shopping cart.');
-            $this->_getSession()->addException($e, $message);
-	        $response['message'] = $message;
-	        Mage::logException($e);
-            $response['error'] = true;
+
+	        if (Mage::helper('ajaxcart')->isInlineNotificationsEnabled()) {
+
+	        	$this->_getSession()->addException($e, $this->__('Cannot add the item to shopping cart.'));
+		        Mage::logException($e);
+		        $response['error'] = true;
+	        }
         }
 
+		$sessionMessages = Mage::getSingleton('checkout/session')->getMessages();
+
+		$block = $this->getLayout()->getMessagesBlock();
+		$block->addMessages($sessionMessages);
+
+		$response['message'] = $block->getMessagesBlock()->toHtml();
+
 		if (Mage::helper('ajaxcart')->isInlineNotificationsEnabled()) {
-
-			$sessionMessages = Mage::getSingleton('checkout/session')->getMessages();
-
-			$block = $this->getLayout()->getMessagesBlock();
-			$block->addMessages($sessionMessages);
 
 			$response['notifications'] = $block->getMessagesBlock()->toHtml();
 		}
