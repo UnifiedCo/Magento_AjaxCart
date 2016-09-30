@@ -11,12 +11,12 @@
     left: 0;
     height: 100%;
     width: 100%;
-    background-color: rgba(0,0,0,0.5);
+    background-color: rgba(0,0,0,0.4);
     animation-name: overlayEaseIn;
 }
 
 .ajaxcart-modal {
-    top: 10%;
+    top: 40%;
     right: 0;
     left: 0;
     margin: auto;
@@ -37,8 +37,9 @@
 
 button.ajaxcart-close {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 0;
+    right: 20px;
+    bottom: 0;
     background-color: transparent;
     border: 0;
     padding: 0;
@@ -63,8 +64,8 @@ button.ajaxcart-close .ajaxcart-close-text {
 }
 
 @keyframes modalEaseIn {
-    from {top: 25%; opacity: 0;}
-    to {top: 10%; opacity: 1;}
+    from {top: 45%; opacity: 0;}
+    to {top: 40%; opacity: 1;}
 }
 
 @keyframes overlayEaseIn {

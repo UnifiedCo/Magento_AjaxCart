@@ -17,7 +17,8 @@
 					addToCartButton: '.btn-cart',
 					qty: 'input.qty',
 					target: $(document),
-					minicartTarget: 'desktop-basket'
+					minicartTarget: 'desktop-basket',
+					notificationsBlock: '#messages_product_view'
 				},
 				documentReady: {
 					onClick: null,
@@ -31,7 +32,8 @@
 					stockCheck: null,
 					error: null,
 					success: null,
-					validateSimpleChildren: true
+					validateSimpleChildren: true,
+					validateInputs: true
 				},
 				ajax: {
 					init: null,
@@ -49,6 +51,7 @@
 					success: null,
 					error: null,
 					message: null,
+					buildInlineMessage: null,
 					resetButton: null,
 					consoleLog: null,
 					defaultAjaxMessage: 'There was an error while processing your request. Please try again later.',
@@ -57,7 +60,7 @@
 				},
 				console: {
 					active: true,
-					log: null
+					log: true
 				}
 			};
 			
@@ -174,15 +177,17 @@
 				var isValid = true;
 				
 				// Validate that user has selected attribute options
-				var selects = $('.super-attribute-select');
-				selects.each(function(){
-					var el = $(this);
-					if (el.prop('required') && !this.value) {
-						settings.display.error('Please specify all required options');
-						isValid = false;
-					}
-				});
-				
+				if (settings.validation.validateInputs) {
+					var selects = $('.super-attribute-select');
+					selects.each(function(){
+						var el = $(this);
+						if (el.prop('required') && !this.value) {
+							settings.display.error('Please specify all required options');
+							isValid = false;
+						}
+					});
+				}
+
 				if (!isValid) return false;
 				
 				// Get the last select, from which we can infer the chosen simple product
@@ -216,13 +221,13 @@
 				var isValid = false;
 				
 				switch (true) {
-					case (qtyInput.length < 1) :
+					case (qtyInput.length < 1 && settings.validation.validateInputs) :
 						settings.display.error('Please select a valid quantity');
 						break;
-					case (!$.isNumeric(qtyInputVal)) :
+					case (!$.isNumeric(qtyInputVal) && settings.validation.validateInputs) :
 						settings.display.error('Please select a valid quantity');
 						break;
-					case (typeof qtyInputVal == 'undefined' || qtyInputVal < 1) :
+					case ((typeof qtyInputVal == 'undefined' || qtyInputVal < 1) && settings.validation.validateInputs) :
 						settings.display.error('Please select a valid quantity');
 						break;
 					case (qtyInputVal > stock) :
@@ -299,11 +304,11 @@
 				}
 				return this;
 			};
-			
+
 			settings.ajax.success = function(data) {
-				
+
 				settings.console.log('settings.ajax.success');
-				
+
 				switch(settings.init.ajaxCartType) {
 					case '1': //TYPE_MINICART
 						settings.display.miniCart(data);
@@ -318,48 +323,53 @@
 						settings.display.inline(data);
 				}
 
-				settings.display.notifications(data);
+				if (settings.display.isInlineNotificationsEnabled)
+					settings.display.notifications(data);
 
 			};
-			
+
 			settings.ajax.error = function(data) {
 				settings.console.log('settings.ajax.error');
-				
+
 				settings.display.error(data.replace(/<(?:.|\n)*?>/gm, ''));
 			};
-			
+
 			/*
 			 DISPLAY
 			 */
-			
+
 			settings.display.loading = function() {
 				settings.console.log('settings.display.loading');
-				
+
 				var button = $(settings.elements.addToCartButton);
 				// Hide existing text
 				button.children().hide();
 				// Add class, disable and prepend text
 				button.addClass('btn-cart-adding').prop('disabled',true).prepend('<span class="btn-cart-state">Adding&hellip;</span>');
 			};
-			
+
 			settings.display.resetButton = function() {
 				settings.console.log('settings.display.resetButton');
 				var button = $(settings.elements.addToCartButton);
 				button.removeClass('btn-cart-adding btn-cart-added').prop('disabled',false).children().show();
 				button.children('.btn-cart-state').remove();
 			};
-			
+
 			settings.display.miniCart = function(data) {
-				
+
 				settings.console.log('settings.display.miniCart');
-				
+
 				$("#cart_sidebar").html(data.sidebar);
-				
+
 				settings.display.miniCartAfter();
-				
+
 				settings.display.success();
+
+				// Display message
+				settings.display.message('success',data.message);
+
 			};
-			
+
 			settings.display.miniCartAfter = function() {
 
 				settings.console.log('settings.display.miniCartAfter');
@@ -380,53 +390,52 @@
 				},settings.display.minicartCloseDelay);
 
 			};
-			
+
 			settings.display.popup =  function(data) {
-				
+
+				console.log(data.message);
+
 				settings.console.log('settings.display.popup');
-				
+
 				var overlay = $('<div class="ajaxcart-overlay"></div>');
 				var modal = $('<div class="ajaxcart-modal"></div>');
 				var modalContent = $('<div class="ajaxcart-modal-content">' + data.message +  '</div>');
 				var close = $('<button class="ajaxcart-close"><span class="ajaxcart-close-text">close</span>&#10006;</button>');
-				
+
 				$('body').append(overlay);
 				overlay.append(modal);
 				modal.append(modalContent);
 				modal.append(close);
-				
+
 				settings.display.success();
 			};
-			
+
 			settings.display.inline =  function(data) {
-				
+
 				settings.console.log('settings.display.inline');
 				settings.display.message('success',data.message);
 				settings.display.success();
 			};
-			
+
 			settings.display.message = function(type,message) {
+
 				// Valid types: "success", "notice", "error"
 				settings.console.log('settings.display.message');
-				
-				// TODO: Make this work on category pages as well
-				var messagesWrapper = $('#messages_product_view');
-				var messagesList = messagesWrapper.children('ul.messages');
 
-				if (messagesWrapper.length > 0) {
-					
-					messagesList = messagesList.length > 0 ? messagesList : $('<ul class="messages"></ul>');
-					var messageItem = $('<li class="' + type + '-msg"></li>');
-					var messageContent = $('<ul><li><span>' + message + '</span></li></ul>');
-					
-					messagesWrapper.append(messagesList);
-					messagesList.append(messageItem);
-					messageItem.append(messageContent);
-					
-				} else {
-					alert(message);
+				if (settings.init.ajaxCartType == 1 || settings.init.ajaxCartType == 2) { // MINI CART OR INLINE
+
+					settings.display.buildInlineMessage(type,message);
+
+				} else if (settings.init.ajaxCartType == 3) { // POPUP
+
+					console.log('settings.display. popup');
+
+					settings.display.popup({message:message});
+
 				}
-				
+
+
+
 			};
 
 			settings.display.notifications = function(data) {
@@ -435,10 +444,37 @@
 
 			    if (settings.init.isInlineNotificationsEnabled) {
 
+			    	var notificationsBlock = $(settings.elements.notificationsBlock);
+
+					if (notificationsBlock.length > 0)
+						$(settings.elements.notificationsBlock).html(data.notifications);
+
                 }
 
             };
-			
+
+            settings.display.buildInlineMessage = function(type, message) {
+
+				settings.console.log('settings.display.buildInlineMessage');
+
+				var messagesWrapper = $(settings.elements.notificationsBlock);
+
+				if (messagesWrapper.length > 0) {
+
+					messagesList = $('<div class="messages"></div>');
+					var messageItem = $('<div class="alert-box ' + type + '">' + message + '</div>');
+					var messageClose = $('<a href="#" class="close">×</a>');
+
+					messagesWrapper.append(messagesList);
+					messagesList.append(messageItem);
+					messageItem.append(messageClose);
+
+				} else {
+					alert(message);
+				}
+
+			};
+
 			settings.display.success = function(data) {
 				settings.console.log('settings.display.success');
 				// Show success state in button, then reset after X seconds
@@ -448,7 +484,7 @@
 					settings.display.resetButton();
 				},settings.display.successResetDelay);
 			};
-			
+
 			settings.display.error = function(msg) {
 				settings.console.log('settings.display.error');
 				settings.display.message('error',msg);
