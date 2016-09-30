@@ -175,7 +175,7 @@
 				}
 				
 				var isValid = true;
-				
+
 				// Validate that user has selected attribute options
 				if (settings.validation.validateInputs) {
 					var selects = $('.super-attribute-select');
@@ -424,7 +424,16 @@
 
 				if (settings.init.ajaxCartType == 1 || settings.init.ajaxCartType == 2) { // MINI CART OR INLINE
 
-					settings.display.buildInlineMessage(type,message);
+					if (message.indexOf('</div>') > -1) {
+						console.log('msg has HTML');
+						settings.display.notifications(message);
+					} else {
+						console.log('msg doesnt have HTML');
+						console.log(message);
+						console.log(typeof message);
+						settings.display.buildInlineMessage(type,message);
+					}
+
 
 				} else if (settings.init.ajaxCartType == 3) { // POPUP
 
@@ -434,22 +443,17 @@
 
 				}
 
-
-
 			};
 
-			settings.display.notifications = function(data) {
+			settings.display.notifications = function(notification) {
 
 			    settings.console.log('settings.display.notification');
 
-			    if (settings.init.isInlineNotificationsEnabled) {
+				var notificationsBlock = $(settings.elements.notificationsBlock);
 
-			    	var notificationsBlock = $(settings.elements.notificationsBlock);
+				if (notificationsBlock.length > 0)
+					$(settings.elements.notificationsBlock).html(notification);
 
-					if (notificationsBlock.length > 0)
-						$(settings.elements.notificationsBlock).html(data.notifications);
-
-                }
 
             };
 
@@ -458,20 +462,13 @@
 				settings.console.log('settings.display.buildInlineMessage');
 
 				var messagesWrapper = $(settings.elements.notificationsBlock);
+				var messagesList = $('<div class="messages"></div>');
+				var messageItem = $('<div class="alert-box ' + type + '">' + message + '</div>');
+				var messageClose = $('<a href="#" class="close">×</a>');
 
-				if (messagesWrapper.length > 0) {
-
-					messagesList = $('<div class="messages"></div>');
-					var messageItem = $('<div class="alert-box ' + type + '">' + message + '</div>');
-					var messageClose = $('<a href="#" class="close">×</a>');
-
-					messagesWrapper.append(messagesList);
-					messagesList.append(messageItem);
-					messageItem.append(messageClose);
-
-				} else {
-					alert(message);
-				}
+				messagesWrapper.html(messagesList);
+				messagesList.append(messageItem);
+				messageItem.append(messageClose);
 
 			};
 
