@@ -10,6 +10,7 @@ class LogicSpot_AjaxCart_IndexController extends Mage_Checkout_CartController {
         	"ajaxcart" => true,
             "error" => false,
             "message" => '',
+            "messages" => array(),
             "image" => '',
             "count" => $cart->getItemsQty(),
 	        "notifications" => ''
@@ -33,6 +34,7 @@ class LogicSpot_AjaxCart_IndexController extends Mage_Checkout_CartController {
             if (!$product) {
                 $response['error'] = true;
 	            $response['message'] = $this->__('Unable to find Product ID');
+	            $response['messages'][] = $this->__('Unable to find Product ID');
                 $this->_reply($response);
                 return;
             }
@@ -52,6 +54,7 @@ class LogicSpot_AjaxCart_IndexController extends Mage_Checkout_CartController {
 
             if (!$cart->getQuote()->getHasError()) {
 	            $this->_getSession()->addSuccess($this->__('%s was added to your shopping cart.', Mage::helper('core')->escapeHtml($product->getName())));
+	            $response['messages'][] = $this->__('%s was added to your shopping cart.', Mage::helper('core')->escapeHtml($product->getName()));
 	            $response['qty'] = $params['qty'];
 
 	            if (Mage::helper('ajaxcart')->getType() == LogicSpot_AjaxCart_Helper_Data::TYPE_MINICART) {
@@ -67,18 +70,20 @@ class LogicSpot_AjaxCart_IndexController extends Mage_Checkout_CartController {
         } catch (Mage_Core_Exception $e) {
 
         	$this->_getSession()->addNotice(Mage::helper('core')->escapeHtml($e->getMessage()));
+	        $response['messages'][] = Mage::helper('core')->escapeHtml($e->getMessage());
 	        $response['error'] = true;
         } catch (Exception $e) {
 
 	        if (Mage::helper('ajaxcart')->isInlineNotificationsEnabled()) {
 
-	        	$this->_getSession()->addException($e, $this->__('Cannot add the item to shopping cart.'));
+		        $response['messages'][] = $this->__('Cannot add the item to shopping cart.');
+			    $this->_getSession()->addException($e, $this->__('Cannot add the item to shopping cart.'));
 		        Mage::logException($e);
 		        $response['error'] = true;
 	        }
         }
 
-		$sessionMessages = Mage::getSingleton('checkout/session')->getMessages();
+		$sessionMessages = Mage::getSingleton('checkout/session')->getMessages(true);
 
 		$block = $this->getLayout()->getMessagesBlock();
 		$block->addMessages($sessionMessages);

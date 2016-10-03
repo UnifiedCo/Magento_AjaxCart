@@ -51,6 +51,7 @@
 					success: null,
 					error: null,
 					message: null,
+					messages: null,
 					buildInlineMessage: null,
 					resetButton: null,
 					consoleLog: null,
@@ -393,13 +394,13 @@
 
 			settings.display.popup =  function(data) {
 
-				console.log(data.message);
+				console.log(data.messages);
 
 				settings.console.log('settings.display.popup');
 
 				var overlay = $('<div class="ajaxcart-overlay"></div>');
 				var modal = $('<div class="ajaxcart-modal"></div>');
-				var modalContent = $('<div class="ajaxcart-modal-content">' + data.message +  '</div>');
+				var modalContent = $('<div class="ajaxcart-modal-content">' + data.messages +  '</div>');
 				var close = $('<button class="ajaxcart-close"><span class="ajaxcart-close-text">close</span>&#10006;</button>');
 
 				$('body').append(overlay);
