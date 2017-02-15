@@ -7,10 +7,23 @@
 		        init: {
 			        ajaxCartEnable: <?php var_export(Mage::helper('ajaxcart')->isModuleEnabled()); ?>,
 			        ajaxCartType: <?php var_export(Mage::helper('ajaxcart')->getType()); ?>,
-			        isInlineNotificationsEnabled: <?php var_export(Mage::helper('ajaxcart')->isInlineNotificationsEnabled()); ?>
-		        }
+			        isInlineNotificationsEnabled: <?php var_export(Mage::helper('ajaxcart')->isInlineNotificationsEnabled()); ?>,
+                    ajaxUrl: <?php var_export(Mage::getUrl('ajaxcart/index/add')); ?>
+		        },
+                display: {
+                    defaultAjaxMessage: '<?php echo $this->__('There was an error while processing your request. Please try again later.'); ?>',
+                    errorNoAddToCartButtonMessage: '<?php echo $this->__('Could not find add to cart button'); ?>',
+                    errorWhileAddingMessage: '<?php echo $this->__('An error occurred when trying to add this product to your basket'); ?>',
+                    errorAllOptionsMessage: '<?php echo $this->__('Please specify all required options'); ?>',
+                    errorValidQuantityMessage: '<?php echo $this->__('Please select a valid quantity'); ?>',
+                    errorQuantityNotAvailableMessage: '<?php echo $this->__('The requested quantity is not available.'); ?>',
+                    addingToCartText: '<?php echo $this->__('Adding&hellip;'); ?>',
+                    addedToCartText: '<?php echo $this->__('Added'); ?>',
+                    ajaxCartCloseText: '<?php echo $this->__('close'); ?>'
+                }
 	        };
-            jQuery(document).ajaxAddToCart(ajaxAddToCart);
+
+            jQuery('<?php echo $this->getSelector() ?>').each(function() { jQuery(this).ajaxAddToCart(ajaxAddToCart) });
         });
     }
     //]]>

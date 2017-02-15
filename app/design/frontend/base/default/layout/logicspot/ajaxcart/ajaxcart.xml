@@ -16,9 +16,6 @@
                 <name>logicspot/ajaxcart/ajaxcart.js</name>
             </action>
         </reference>
-        <reference name="before_body_end">
-            <block type="core/template" name="logicspot.ajaxcart" as="ajaxcart" template="logicspot/ajaxcart/element.phtml" after="-"/>
-        </reference>
     </default>
     <catalog_product_view>
         <reference name="product.info">
@@ -27,5 +24,20 @@
             </action>
             <block type="ajaxcart/catalog_product_view_type_json" name="json" as="json" template="logicspot/ajaxcart/catalog/product/json.phtml"/>
         </reference>
+        <reference name="before_body_end">
+            <block type="core/template" name="logicspot.ajaxcart" as="ajaxcart" template="logicspot/ajaxcart/element.phtml" after="-">
+                <action method="setSelector"><value>#product_addtocart_form</value></action>
+            </block>
+        </reference>
     </catalog_product_view>
+    <product_list>
+        <reference name="product_list.name.after">
+            <block type="ajaxcart/catalog_product_view_type_json" name="json" as="json" template="logicspot/ajaxcart/catalog/product/json.phtml"/>
+        </reference>
+        <reference name="before_body_end">
+            <block type="core/template" name="logicspot.ajaxcart" as="ajaxcart" template="logicspot/ajaxcart/element.phtml" after="-">
+                <action method="setSelector"><value>.category-products .item</value></action>
+            </block>
+        </reference>
+    </product_list>
 </layout>

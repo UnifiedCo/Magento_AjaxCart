@@ -2,507 +2,517 @@
 	
 	if (typeof jQuery !== 'undefined') {
 		
-		jQuery.fn.ajaxAddToCart = function( options ) {
-			
-			/*
-			 DEFAULTS
-			 */
-			var settings = {
-				init: {
-					ajaxCartEnable: null,
-					ajaxCartType: null,
-					isInlineNotificationsEnabled: false
-				},
-				elements: {
-					addToCartButton: '.btn-cart',
-					qty: 'input.qty',
-					target: $(document),
-					minicartTarget: 'desktop-basket',
-					notificationsBlock: '#messages_product_view'
-				},
-				documentReady: {
-					onClick: null,
-					onHover: null,
-					btnLoad: null
-				},
-				validation: {
-					init: null,
-					getProductConfiguration: null,
-					checkConfigurableAttributes: null,
-					stockCheck: null,
-					error: null,
-					success: null,
-					validateSimpleChildren: true,
-					validateInputs: true
-				},
-				ajax: {
-					init: null,
-					data: null,
-					request: null,
-					success: null,
-					error: null
-				},
-				display: {
-					loading: null,
-					miniCart: null,
-					miniCartAfter: null,
-					popup: null,
-					inline: null,
-					success: null,
-					error: null,
-					message: null,
-					messages: null,
-					buildInlineMessage: null,
-					resetButton: null,
-					consoleLog: null,
-					defaultAjaxMessage: 'There was an error while processing your request. Please try again later.',
-					successResetDelay: 4000,
-					minicartCloseDelay: 6000
-				},
-				console: {
-					active: true,
-					log: true
-				}
-			};
-			
-			/*
-			 DOM READY
-			 */
-			
-			settings.documentReady.onClick = function(e) {
-				e.preventDefault();
-				// Loading state
-				settings.display.loading();
-				// Initialise validation
-				settings.validation.init(e.target);
-			};
-			
-			settings.documentReady.onHover = function(e) {};
-			
-			settings.documentReady.onLoad = function(e) {};
-			
-			$(document).ready(function(){
-				
-				settings.console.log('document.ready');
-				
-				settings.console.log(settings.init);
-				
-				// Check button exists
-				if ($(settings.elements.addToCartButton).length < 1) {
-					settings.validation.error('Could not find add to cart button');
-				}
-				
-				// Connect button to onClick setting
-				settings.elements.target.on('click', settings.elements.addToCartButton, function(e){
-					settings.documentReady.onClick(e);
-				});
-				
-				// Connect button to onHover setting
-				settings.elements.target.on('hover', settings.elements.addToCartButton, function(e){
-					settings.documentReady.onHover(e);
-				});
-				
-				// Connect button to onLoad setting
-				settings.elements.target.on('load', settings.elements.addToCartButton, function(e){
-					settings.documentReady.onLoad(e);
-				});
+		jQuery.fn.extend({
+		    ajaxAddToCart: function( options ) {
 
-				// Close popup
-				$(document).on('click','.ajaxcart-close, .ajaxcart-overlay',function(){
-					$(this).closest('.ajaxcart-overlay').remove();
-				});
-				
-			});
-			
-			/*
-			 VALIDATION
-			 */
+                /*
+                 DEFAULTS
+                 */
+                var settings = {
+                    init: {
+                        ajaxCartEnable: null,
+                        ajaxCartType: null,
+                        isInlineNotificationsEnabled: false,
+                        ajaxUrl: 'ajaxcart/index/add'
+                    },
+                    elements: {
+                        addToCartButton: '.btn-cart',
+                        qty: 'input.qty',
+                        target: this,
+                        minicartTarget: 'desktop-basket',
+                        notificationsBlock: '#messages_product_view'
+                    },
+                    documentReady: {
+                        onClick: null,
+                        onHover: null,
+                        btnLoad: null
+                    },
+                    validation: {
+                        init: null,
+                        getProductConfiguration: null,
+                        checkConfigurableAttributes: null,
+                        stockCheck: null,
+                        error: null,
+                        success: null,
+                        validateSimpleChildren: true,
+                        validateInputs: true
+                    },
+                    ajax: {
+                        init: null,
+                        data: null,
+                        request: null,
+                        success: null,
+                        error: null
+                    },
+                    display: {
+                        loading: null,
+                        miniCart: null,
+                        miniCartAfter: null,
+                        popup: null,
+                        inline: null,
+                        success: null,
+                        error: null,
+                        message: null,
+                        messages: null,
+                        buildInlineMessage: null,
+                        resetButton: null,
+                        consoleLog: null,
+                        defaultAjaxMessage: 'There was an error while processing your request. Please try again later.',
+                        errorNoAddToCartButtonMessage: 'Could not find add to cart button',
+                        errorWhileAddingMessage: 'An error occurred when trying to add this product to your basket',
+                        errorAllOptionsMessage: 'Please specify all required options',
+                        errorValidQuantityMessage: 'Please select a valid quantity',
+                        quantityNotAvailableMessage: 'The requested quantity is not available.',
+                        addingToCartText: 'Adding&hellip;',
+                        addedToCartText: 'Added',
+                        ajaxCartCloseText: 'close',
+                        successResetDelay: 4000,
+                        minicartCloseDelay: 6000
+                    },
+                    console: {
+                        active: true,
+                        log: true
+                    }
+                };
 
-			settings.validation.init = function (button) {
-				
-				settings.console.log('settings.validation.init');
-				
-				// Get the product configuration data
-				var productData = settings.validation.getProductConfiguration(button);
-				
-				if (productData) {
-					
-					// Check there is sufficient stock
-					var available = true;
-					if (productData.productType === 'simple' || productData.productType === 'configurable' && settings.validation.validateSimpleChildren) {
-						available = settings.validation.stockCheck(productData)
-					}
-					
-					if (available) {
-						settings.console.log(productData);
-						settings.validation.success();
-					}
-				}
-			};
-			
-			settings.validation.getProductConfiguration = function(button) {
-				
-				settings.console.log('settings.validation.getProductConfiguration');
-				
-				var data = JSON.parse($(button).closest('form').find('div[data-product]').attr('data-product'));
-				var requiredProps = ['productId','productType','Qty'];
-				
-				// Check product data has required fields
-				requiredProps.forEach(function(item){
-					if (!data.hasOwnProperty(item)) {
-						// If data is missing, call validation error
-						settings.validation.error('Missing product data: ' + item);
-						settings.display.error('An error occurred when trying to add this product to your basket');
-						data = false;
-					}
-				});
-				
-				// If configurable product, validate configurable data
-				if (data.productType === 'configurable')
-					data = settings.validation.checkConfigurableAttributes(data);
-				
-				return data;
-				
-			};
-			
-			settings.validation.checkConfigurableAttributes = function(productData) {
-				
-				settings.console.log('settings.validation.checkConfigurableAttributes');
-				
-				if (!productData.configuration || !productData.products) {
-					settings.validation.error('missing configurable data');
-					settings.display.error('An error occurred when trying to add this product to your basket');
-					return false;
-				}
-				
-				var isValid = true;
+                /*
+                 DOM READY
+                 */
 
-				// Validate that user has selected attribute options
-				if (settings.validation.validateInputs) {
-					var selects = $('.super-attribute-select');
-					selects.each(function(){
-						var el = $(this);
-						if (el.prop('required') && !this.value) {
-							settings.display.error('Please specify all required options');
-							isValid = false;
-						}
-					});
-				}
+                settings.documentReady.onClick = function(e) {
+                    e.preventDefault();
+                    // Loading state
+                    settings.display.loading();
+                    // Initialise validation
+                    settings.validation.init(e.target);
+                };
 
-				if (!isValid) return false;
-				
-				// Get the last select, from which we can infer the chosen simple product
-				// TODO: There should be a logical way to do this without relying on HTML sort order
-				var select = $('.super-attribute-select').last();
-				var selectAttrId = select.attr('id').substring(9); // e.g. Get "180" from "attribute180"
-				var selectAttrOption = select.val();
-				
-				// Get the simple product object, which contains the qty
-				try {
-					var simpleProductId = productData.configuration.attributes[selectAttrId].options[selectAttrOption].products[0];
-				} catch(err) {
-					settings.validation.error(err);
-					settings.display.error('An error occurred when trying to add this product to your basket');
-					return false;
-				}
-				
-				// Create new prop in the object with the selected product ID and qty
-				productData.selectedProduct = simpleProductId;
-				return productData;
-				
-			};
-			
-			settings.validation.stockCheck = function (productData) {
-				
-				settings.console.log('settings.validation.stockCheck');
-				
-				var qtyInput = $(settings.elements.qty);
-				var qtyInputVal = qtyInput.val();
-				var stock = productData.productType === 'configurable' ? productData.products[productData.selectedProduct].Qty : productData.qty;
-				var isValid = false;
-				
-				switch (true) {
-					case (qtyInput.length < 1 && settings.validation.validateInputs) :
-						settings.display.error('Please select a valid quantity');
-						break;
-					case (!$.isNumeric(qtyInputVal) && settings.validation.validateInputs) :
-						settings.display.error('Please select a valid quantity');
-						break;
-					case ((typeof qtyInputVal == 'undefined' || qtyInputVal < 1) && settings.validation.validateInputs) :
-						settings.display.error('Please select a valid quantity');
-						break;
-					case (qtyInputVal > stock) :
-						settings.display.error('The requested quantity is not available.');
-						break;
-					default :
-						isValid = true;
-				}
-				
-				return isValid;
-				
-			};
-			
-			settings.validation.error = function(error) {
-				settings.console.log('settings.validation.error');
-				settings.display.error(error);
-			};
-			
-			settings.validation.success = function() {
-				settings.console.log('settings.validation.success');
-				settings.ajax.init();
-			};
-			
-			/*
-			 AJAX
-			 */
-			
-			settings.ajax.init = function() {
-				settings.console.log('settings.ajax.init');
-				
-				// Prepare the data
-				var data = settings.ajax.data();
-				// Make ajax call
-				settings.ajax.request(data);
-			};
-			
-			settings.ajax.data = function() {
-				settings.console.log('settings.ajax.data');
-				
-				//build request parameters
-				var data = $('#product_addtocart_form').serialize();
-				data += '&isAjax=1';
-				
-				return data;
-			};
-			
-			settings.ajax.request = function(data) {
-				settings.console.log('settings.ajax.request');
-				
-				try {
-					
-					$.ajax({
-						url: 'ajaxcart/index/add',
-						dataType: 'json',
-						type : 'post',
-						data: data,
-						success: function(data){
-							settings.console.log('ajax success method');
-							settings.console.log(data.error);
-							if (data.error == false) {
-								settings.ajax.success(data);
-							} else if (data.error == true) {
-								settings.ajax.error(data.message);
-							}
-						},
-						error: function(){
-							settings.console.log('ajax error method');
-							settings.display.error(settings.display.defaultAjaxMessage);
-						}
-					});
-				} catch (e) {
-					settings.console.log('ajax catch method');
-					settings.display.error(settings.display.defaultAjaxMessage);
-				}
-				return this;
-			};
+                settings.documentReady.onHover = function(e) {};
 
-			settings.ajax.success = function(data) {
+                settings.documentReady.onLoad = function(e) {};
 
-				settings.console.log('settings.ajax.success');
+                /*
+                 VALIDATION
+                 */
 
-				switch(settings.init.ajaxCartType) {
-					case '1': //TYPE_MINICART
-						settings.display.miniCart(data);
-						break;
-					case '2': //TYPE_INLINE
-						settings.display.inline(data);
-						break;
-					case '3': //TYPE_POPUP
-						settings.display.popup(data);
-						break;
-					default: //TYPE_INLINE
-						settings.display.inline(data);
-				}
+                settings.validation.init = function (button) {
 
-				if (settings.display.isInlineNotificationsEnabled)
-					settings.display.notifications(data);
+                    settings.console.log('settings.validation.init');
 
-			};
+                    // Get the product configuration data
+                    var productData = settings.validation.getProductConfiguration(button);
 
-			settings.ajax.error = function(data) {
-				settings.console.log('settings.ajax.error');
+                    if (productData) {
 
-				settings.display.error(data.replace(/<(?:.|\n)*?>/gm, ''));
-			};
+                        // Check there is sufficient stock
+                        var available = true;
+                        if (productData.productType === 'simple' || productData.productType === 'configurable' && settings.validation.validateSimpleChildren) {
+                            available = settings.validation.stockCheck(productData)
+                        }
 
-			/*
-			 DISPLAY
-			 */
+                        if (available) {
+                            settings.console.log(productData);
+                            settings.validation.success();
+                        }
+                    }
+                };
 
-			settings.display.loading = function() {
-				settings.console.log('settings.display.loading');
+                settings.validation.getProductConfiguration = function(button) {
 
-				var button = $(settings.elements.addToCartButton);
-				// Hide existing text
-				button.children().hide();
-				// Add class, disable and prepend text
-				button.addClass('btn-cart-adding').prop('disabled',true).prepend('<span class="btn-cart-state">Adding&hellip;</span>');
-			};
+                    settings.console.log('settings.validation.getProductConfiguration');
+                    var data = JSON.parse(settings.elements.target.find('div[data-product]').attr('data-product'));
+                    var requiredProps = ['productId','productType','Qty'];
 
-			settings.display.resetButton = function() {
-				settings.console.log('settings.display.resetButton');
-				var button = $(settings.elements.addToCartButton);
-				button.removeClass('btn-cart-adding btn-cart-added').prop('disabled',false).children().show();
-				button.children('.btn-cart-state').remove();
-			};
+                    // Check product data has required fields
+                    requiredProps.forEach(function(item){
+                        if (!data.hasOwnProperty(item)) {
+                            // If data is missing, call validation error
+                            settings.validation.error('Missing product data: ' + item);
+                            settings.display.error(settings.display.errorWhileAddingMessage);
+                            data = false;
+                        }
+                    });
 
-			settings.display.miniCart = function(data) {
+                    // If configurable product, validate configurable data
+                    if (data.productType === 'configurable')
+                        data = settings.validation.checkConfigurableAttributes(data);
 
-				settings.console.log('settings.display.miniCart');
+                    return data;
 
-				$("#cart_sidebar").html(data.sidebar);
+                };
 
-				settings.display.miniCartAfter();
+                settings.validation.checkConfigurableAttributes = function(productData) {
 
-				settings.display.success();
+                    settings.console.log('settings.validation.checkConfigurableAttributes');
 
-				// Display message
-				settings.display.message('success',data.message);
+                    if (!productData.configuration || !productData.products) {
+                        settings.validation.error('missing configurable data');
+                        settings.display.error('An error occurred when trying to add this product to your basket');
+                        return false;
+                    }
 
-			};
+                    var isValid = true;
 
-			settings.display.miniCartAfter = function() {
+                    // Validate that user has selected attribute options
+                    if (settings.validation.validateInputs) {
+                        var selects = $('.super-attribute-select');
+                        selects.each(function(){
+                            var el = $(this);
+                            if (el.prop('required') && !this.value) {
+                                settings.display.error(settings.display.errorAllOptionsMessage);
+                                isValid = false;
+                            }
+                        });
+                    }
 
-				settings.console.log('settings.display.miniCartAfter');
+                    if (!isValid) return false;
 
-				// Reinit foundation dropdowns
-				settings.elements.target.foundation('dropdown', 'reflow');
+                    // Get the last select, from which we can infer the chosen simple product
+                    // TODO: There should be a logical way to do this without relying on HTML sort order
+                    var select = $('.super-attribute-select').last();
+                    var selectAttrId = select.attr('id').substring(9); // e.g. Get "180" from "attribute180"
+                    var selectAttrOption = select.val();
 
-				// Open mini cart dropdown
-				var minicartTrigger = jQuery('a[data-dropdown="' + settings.elements.minicartTarget + '"]');
-				var minicartDropdown = jQuery('#' + settings.elements.minicartTarget);
-				Foundation.libs.dropdown.open(minicartDropdown,minicartTrigger);
+                    // Get the simple product object, which contains the qty
+                    try {
+                        var simpleProductId = productData.configuration.attributes[selectAttrId].options[selectAttrOption].products[0];
+                    } catch(err) {
+                        settings.validation.error(err);
+                        settings.display.error('An error occurred when trying to add this product to your basket');
+                        return false;
+                    }
 
-				// Close minicart after X seconds, if user is not hovering
-				window.setTimeout(function(){
-					if (!minicartDropdown.is(':hover')) {
-						Foundation.libs.dropdown.close(minicartDropdown);
-					}
-				},settings.display.minicartCloseDelay);
+                    // Create new prop in the object with the selected product ID and qty
+                    productData.selectedProduct = simpleProductId;
+                    return productData;
 
-			};
+                };
 
-			settings.display.popup =  function(data) {
+                settings.validation.stockCheck = function (productData) {
 
-				console.log(data.messages);
+                    settings.console.log('settings.validation.stockCheck');
 
-				settings.console.log('settings.display.popup');
+                    var qtyInput = $(settings.elements.qty);
+                    var qtyInputVal = qtyInput.val();
+                    var stock = productData.productType === 'configurable' ? productData.products[productData.selectedProduct].Qty : productData.qty;
+                    var isValid = false;
 
-				var overlay = $('<div class="ajaxcart-overlay"></div>');
-				var modal = $('<div class="ajaxcart-modal"></div>');
-				var modalContent = $('<div class="ajaxcart-modal-content">' + data.messages +  '</div>');
-				var close = $('<button class="ajaxcart-close"><span class="ajaxcart-close-text">close</span>&#10006;</button>');
+                    switch (true) {
+                        case (qtyInput.length < 1 && settings.validation.validateInputs) :
+                            settings.display.error(settings.display.errorValidQuantityMessage);
+                            break;
+                        case (!$.isNumeric(qtyInputVal) && settings.validation.validateInputs) :
+                            settings.display.error(settings.display.errorValidQuantityMessage);
+                            break;
+                        case ((typeof qtyInputVal == 'undefined' || qtyInputVal < 1) && settings.validation.validateInputs) :
+                            settings.display.error(settings.display.errorValidQuantityMessage);
+                            break;
+                        case (qtyInputVal > stock) :
+                            settings.display.error(settings.display.quantityNotAvailableMessage);
+                            break;
+                        default :
+                            isValid = true;
+                    }
 
-				$('body').append(overlay);
-				overlay.append(modal);
-				modal.append(modalContent);
-				modal.append(close);
+                    return isValid;
 
-				settings.display.success();
-			};
+                };
 
-			settings.display.inline =  function(data) {
+                settings.validation.error = function(error) {
+                    settings.console.log('settings.validation.error');
+                    settings.display.error(error);
+                };
 
-				settings.console.log('settings.display.inline');
-				settings.display.message('success',data.message);
-				settings.display.success();
-			};
+                settings.validation.success = function() {
+                    settings.console.log('settings.validation.success');
+                    settings.ajax.init();
+                };
 
-			settings.display.message = function(type,message) {
+                /*
+                 AJAX
+                 */
 
-				// Valid types: "success", "notice", "error"
-				settings.console.log('settings.display.message');
+                settings.ajax.init = function() {
+                    settings.console.log('settings.ajax.init');
 
-				if (settings.init.ajaxCartType == 1 || settings.init.ajaxCartType == 2) { // MINI CART OR INLINE
+                    // Prepare the data
+                    var data = settings.ajax.data();
+                    // Make ajax call
+                    settings.ajax.request(data);
+                };
 
-					if (message.indexOf('</div>') > -1) {
-						console.log('msg has HTML');
-						settings.display.notifications(message);
-					} else {
-						console.log('msg doesnt have HTML');
-						console.log(message);
-						console.log(typeof message);
-						settings.display.buildInlineMessage(type,message);
-					}
+                settings.ajax.data = function() {
+                    settings.console.log('settings.ajax.data');
+
+                    //build request parameters
+                    var data = $('#product_addtocart_form').serialize();
+                    data += '&isAjax=1';
+
+                    return data;
+                };
+
+                settings.ajax.request = function(data) {
+                    settings.console.log('settings.ajax.request');
+
+                    try {
+                        $.ajax({
+                            url: settings.init.ajaxUrl,
+                            dataType: 'json',
+                            type : 'post',
+                            data: data,
+                            success: function(data){
+                                settings.console.log('ajax success method');
+                                settings.console.log(data.error);
+                                if (data.error == false) {
+                                    settings.ajax.success(data);
+                                } else if (data.error == true) {
+                                    settings.ajax.error(data.message);
+                                }
+                            },
+                            error: function(){
+                                settings.console.log('ajax error method');
+                                settings.display.error(settings.display.defaultAjaxMessage);
+                            }
+                        });
+                    } catch (e) {
+                        settings.console.log('ajax catch method');
+                        settings.display.error(settings.display.defaultAjaxMessage);
+                    }
+                    return this;
+                };
+
+                settings.ajax.success = function(data) {
+
+                    settings.console.log('settings.ajax.success');
+
+                    switch(settings.init.ajaxCartType) {
+                        case '1': //TYPE_MINICART
+                            settings.display.miniCart(data);
+                            break;
+                        case '2': //TYPE_INLINE
+                            settings.display.inline(data);
+                            break;
+                        case '3': //TYPE_POPUP
+                            settings.display.popup(data);
+                            break;
+                        default: //TYPE_INLINE
+                            settings.display.inline(data);
+                    }
+
+                    if (settings.display.isInlineNotificationsEnabled)
+                        settings.display.notifications(data);
+
+                };
+
+                settings.ajax.error = function(data) {
+                    settings.console.log('settings.ajax.error');
+
+                    settings.display.error(data.replace(/<(?:.|\n)*?>/gm, ''));
+                };
+
+                /*
+                 DISPLAY
+                 */
+
+                settings.display.loading = function() {
+                    settings.console.log('settings.display.loading');
+
+                    var button = settings.elements.target.find(settings.elements.addToCartButton);
+                    console.log(button);
+                    // Hide existing text
+                    button.children().hide();
+                    // Add class, disable and prepend text
+                    button.addClass('btn-cart-adding').prop('disabled',true).prepend('<span class="btn-cart-state">' + settings.display.addingToCartText + '</span>');
+                };
+
+                settings.display.resetButton = function() {
+                    settings.console.log('settings.display.resetButton');
+
+                    var button = settings.elements.target.find(settings.elements.addToCartButton);
+                    button.removeClass('btn-cart-adding btn-cart-added').prop('disabled',false).children().show();
+                    button.children('.btn-cart-state').remove();
+                };
+
+                settings.display.miniCart = function(data) {
+
+                    settings.console.log('settings.display.miniCart');
+
+                    $("#cart_sidebar").html(data.sidebar);
+
+                    settings.display.miniCartAfter();
+
+                    settings.display.success();
+
+                    // Display message
+                    settings.display.message('success',data.message);
+
+                };
+
+                settings.display.miniCartAfter = function() {
+
+                    settings.console.log('settings.display.miniCartAfter');
+
+                    // Reinit foundation dropdowns
+                    settings.elements.target.foundation('dropdown', 'reflow');
+
+                    // Open mini cart dropdown
+                    var minicartTrigger = jQuery('a[data-dropdown="' + settings.elements.minicartTarget + '"]');
+                    var minicartDropdown = jQuery('#' + settings.elements.minicartTarget);
+                    Foundation.libs.dropdown.open(minicartDropdown,minicartTrigger);
+
+                    // Close minicart after X seconds, if user is not hovering
+                    window.setTimeout(function(){
+                        if (!minicartDropdown.is(':hover')) {
+                            Foundation.libs.dropdown.close(minicartDropdown);
+                        }
+                    },settings.display.minicartCloseDelay);
+
+                };
+
+                settings.display.popup =  function(data) {
+
+                    console.log(data.messages);
+
+                    settings.console.log('settings.display.popup');
+
+                    var overlay = $('<div class="ajaxcart-overlay"></div>');
+                    var modal = $('<div class="ajaxcart-modal"></div>');
+                    var modalContent = $('<div class="ajaxcart-modal-content">' + data.messages +  '</div>');
+                    var close = $('<button class="ajaxcart-close"><span class="ajaxcart-close-text">' + settings.display.ajaxCartCloseText + '</span>&#10006;</button>');
+
+                    $('body').append(overlay);
+                    overlay.append(modal);
+                    modal.append(modalContent);
+                    modal.append(close);
+
+                    settings.display.success();
+                };
+
+                settings.display.inline =  function(data) {
+
+                    settings.console.log('settings.display.inline');
+                    settings.display.message('success',data.message);
+                    settings.display.success();
+                };
+
+                settings.display.message = function(type,message) {
+
+                    // Valid types: "success", "notice", "error"
+                    settings.console.log('settings.display.message');
+
+                    if (settings.init.ajaxCartType == 1 || settings.init.ajaxCartType == 2) { // MINI CART OR INLINE
+
+                        if (message.indexOf('</div>') > -1) {
+                            console.log('msg has HTML');
+                            settings.display.notifications(message);
+                        } else {
+                            console.log('msg doesnt have HTML');
+                            console.log(message);
+                            console.log(typeof message);
+                            settings.display.buildInlineMessage(type,message);
+                        }
 
 
-				} else if (settings.init.ajaxCartType == 3) { // POPUP
+                    } else if (settings.init.ajaxCartType == 3) { // POPUP
 
-					console.log('settings.display. popup');
+                        console.log('settings.display. popup');
 
-					settings.display.popup({message:message});
+                        settings.display.popup({message:message});
 
-				}
+                    }
 
-			};
+                };
 
-			settings.display.notifications = function(notification) {
+                settings.display.notifications = function(notification) {
 
-			    settings.console.log('settings.display.notification');
+                    settings.console.log('settings.display.notification');
 
-				var notificationsBlock = $(settings.elements.notificationsBlock);
+                    var notificationsBlock = $(settings.elements.notificationsBlock);
 
-				if (notificationsBlock.length > 0)
-					$(settings.elements.notificationsBlock).html(notification);
+                    if (notificationsBlock.length > 0)
+                        $(settings.elements.notificationsBlock).html(notification);
 
 
-            };
+                };
 
-            settings.display.buildInlineMessage = function(type, message) {
+                settings.display.buildInlineMessage = function(type, message) {
 
-				settings.console.log('settings.display.buildInlineMessage');
+                    settings.console.log('settings.display.buildInlineMessage');
 
-				var messagesWrapper = $(settings.elements.notificationsBlock);
-				var messagesList = $('<div class="messages"></div>');
-				var messageItem = $('<div class="alert-box ' + type + '">' + message + '</div>');
-				var messageClose = $('<a href="#" class="close">×</a>');
+                    var messagesWrapper = $(settings.elements.notificationsBlock);
+                    var messagesList = $('<div class="messages"></div>');
+                    var messageItem = $('<div class="alert-box ' + type + '">' + message + '</div>');
+                    var messageClose = $('<a href="#" class="close">×</a>');
 
-				messagesWrapper.html(messagesList);
-				messagesList.append(messageItem);
-				messageItem.append(messageClose);
+                    messagesWrapper.html(messagesList);
+                    messagesList.append(messageItem);
+                    messageItem.append(messageClose);
 
-			};
+                };
 
-			settings.display.success = function(data) {
-				settings.console.log('settings.display.success');
-				// Show success state in button, then reset after X seconds
-				var button = $(settings.elements.addToCartButton);
-				button.removeClass('btn-cart-adding').addClass('btn-cart-added').find('.btn-cart-state').text('Added');
-				window.setTimeout(function(){
-					settings.display.resetButton();
-				},settings.display.successResetDelay);
-			};
+                settings.display.success = function(data) {
+                    settings.console.log('settings.display.success');
+                    // Show success state in button, then reset after X seconds
+                    var button = $(settings.elements.addToCartButton);
+                    button.removeClass('btn-cart-adding').addClass('btn-cart-added').find('.btn-cart-state').text(settings.display.addedToCartText);
+                    window.setTimeout(function(){
+                        settings.display.resetButton();
+                    },settings.display.successResetDelay);
+                };
 
-			settings.display.error = function(msg) {
-				settings.console.log('settings.display.error');
-				settings.display.message('error',msg);
-				settings.display.resetButton();
-			};
-			
-			settings.console.log = function(message) {
-				if (settings.console.active) {
-					console.log(message);
-				}
-			};
-			
-			// Merge defaults with any configured overrides
-			for (var obj in settings) {
-				if (options && options.hasOwnProperty(obj)) {
-					settings[obj] = $.extend( {}, settings[obj], options[obj] );
-				}
-			}
-			
-		}; // end jQuery.fn.ajaxAddToCart
+                settings.display.error = function(msg) {
+                    settings.console.log('settings.display.error');
+                    settings.display.message('error',msg);
+                    settings.display.resetButton();
+                };
+
+                settings.console.log = function(message) {
+                    if (settings.console.active) {
+                        console.log(message);
+                    }
+                };
+
+                // Merge defaults with any configured overrides
+                for (var obj in settings) {
+                    if (options && options.hasOwnProperty(obj)) {
+                        settings[obj] = $.extend( {}, settings[obj], options[obj] );
+                    }
+                }
+
+                return this.each(function(){
+                    settings.console.log('document.ready');
+
+                    settings.console.log(settings.init);
+
+                    // Check button exists
+                    if ($(settings.elements.addToCartButton).length < 1) {
+                        settings.validation.error(settings.display.errorNoAddToCartButtonMessage);
+                    }
+
+                    // Connect button to onClick setting
+                    settings.elements.target.on('click', settings.elements.addToCartButton, function(e){
+                        settings.documentReady.onClick(e);
+                    });
+
+                    // Connect button to onHover setting
+                    settings.elements.target.on('hover', settings.elements.addToCartButton, function(e){
+                        settings.documentReady.onHover(e);
+                    });
+
+                    // Connect button to onLoad setting
+                    settings.elements.target.on('load', settings.elements.addToCartButton, function(e){
+                        settings.documentReady.onLoad(e);
+                    });
+
+                    // Close popup
+                    $(document).on('click','.ajaxcart-close, .ajaxcart-overlay',function(){
+                        $(this).closest('.ajaxcart-overlay').remove();
+                    });
+
+                });
+
+            }
+        }); // end jQuery.fn.extend
 		
 	} // end if typeof jQuery !== 'undefined'
 	
