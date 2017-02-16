@@ -75,79 +75,85 @@
                     }
                 };
 
+                var productData = null;
+
                 /*
                  DOM READY
                  */
 
-                settings.documentReady.onClick = function(e) {
+                settings.documentReady.onClick = function(settings, e) {
                     e.preventDefault();
                     // Loading state
-                    settings.display.loading();
+                    settings.display.loading(settings);
                     // Initialise validation
-                    settings.validation.init(e.target);
+                    settings.validation.init(settings);
                 };
 
-                settings.documentReady.onHover = function(e) {};
+                settings.documentReady.onHover = function(settings, e) {};
 
-                settings.documentReady.onLoad = function(e) {};
+                settings.documentReady.onLoad = function(settings, e) {};
 
                 /*
                  VALIDATION
                  */
 
-                settings.validation.init = function (button) {
+                settings.validation.init = function (settings) {
 
-                    settings.console.log('settings.validation.init');
+                    settings.console.log(settings, 'settings.validation.init');
 
                     // Get the product configuration data
-                    var productData = settings.validation.getProductConfiguration(button);
+                    var productData = settings.validation.getProductConfiguration(settings);
 
                     if (productData) {
 
                         // Check there is sufficient stock
                         var available = true;
                         if (productData.productType === 'simple' || productData.productType === 'configurable' && settings.validation.validateSimpleChildren) {
-                            available = settings.validation.stockCheck(productData)
+                            available = settings.validation.stockCheck(settings, productData)
                         }
 
                         if (available) {
-                            settings.console.log(productData);
-                            settings.validation.success();
+                            settings.console.log(settings, productData);
+                            settings.validation.success(settings);
                         }
                     }
                 };
 
-                settings.validation.getProductConfiguration = function(button) {
+                settings.validation.getProductConfiguration = function(settings) {
+                    settings.console.log(settings, 'settings.validation.getProductConfiguration');
+                    if (!productData) {
+                        var data = JSON.parse(settings.elements.target.find('div[data-product]').attr('data-product'));
+                        var requiredProps = ['productId', 'productType', 'Qty'];
 
-                    settings.console.log('settings.validation.getProductConfiguration');
-                    var data = JSON.parse(settings.elements.target.find('div[data-product]').attr('data-product'));
-                    var requiredProps = ['productId','productType','Qty'];
+                        // Check product data has required fields
+                        requiredProps.forEach(function (item) {
+                            if (!data.hasOwnProperty(item)) {
+                                // If data is missing, call validation error
+                                settings.validation.error(settings, 'Missing product data: ' + item);
+                                settings.display.error(settings, settings.display.errorWhileAddingMessage);
+                                data = false;
+                            }
+                        });
 
-                    // Check product data has required fields
-                    requiredProps.forEach(function(item){
-                        if (!data.hasOwnProperty(item)) {
-                            // If data is missing, call validation error
-                            settings.validation.error('Missing product data: ' + item);
-                            settings.display.error(settings.display.errorWhileAddingMessage);
-                            data = false;
+                        // If configurable product, validate configurable data
+                        if (data.productType === 'configurable') {
+                            data = settings.validation.checkConfigurableAttributes(settings, data);
                         }
-                    });
 
-                    // If configurable product, validate configurable data
-                    if (data.productType === 'configurable')
-                        data = settings.validation.checkConfigurableAttributes(data);
+                        productData = data;
+                    }
 
-                    return data;
+                    return productData;
 
                 };
 
-                settings.validation.checkConfigurableAttributes = function(productData) {
+                settings.validation.checkConfigurableAttributes = function(settings, productData) {
 
-                    settings.console.log('settings.validation.checkConfigurableAttributes');
+                    settings.console.log(settings, 'settings.validation.checkConfigurableAttributes');
 
                     if (!productData.configuration || !productData.products) {
-                        settings.validation.error('missing configurable data');
-                        settings.display.error('An error occurred when trying to add this product to your basket');
+                        settings.validation.error(settings, 'missing configurable data');
+                        settings.display.error(settings, 'An error occurred when trying to add this product to your basket');
                         return false;
                     }
 
@@ -159,7 +165,7 @@
                         selects.each(function(){
                             var el = $(this);
                             if (el.prop('required') && !this.value) {
-                                settings.display.error(settings.display.errorAllOptionsMessage);
+                                settings.display.error(settings, settings.display.errorAllOptionsMessage);
                                 isValid = false;
                             }
                         });
@@ -177,8 +183,8 @@
                     try {
                         var simpleProductId = productData.configuration.attributes[selectAttrId].options[selectAttrOption].products[0];
                     } catch(err) {
-                        settings.validation.error(err);
-                        settings.display.error('An error occurred when trying to add this product to your basket');
+                        settings.validation.error(settings, err);
+                        settings.display.error(settings, 'An error occurred when trying to add this product to your basket');
                         return false;
                     }
 
@@ -188,27 +194,27 @@
 
                 };
 
-                settings.validation.stockCheck = function (productData) {
+                settings.validation.stockCheck = function (settings, productData) {
 
-                    settings.console.log('settings.validation.stockCheck');
+                    settings.console.log(settings, 'settings.validation.stockCheck');
 
-                    var qtyInput = $(settings.elements.qty);
+                    var qtyInput = settings.elements.target.find(settings.elements.qty);
                     var qtyInputVal = qtyInput.val();
                     var stock = productData.productType === 'configurable' ? productData.products[productData.selectedProduct].Qty : productData.qty;
                     var isValid = false;
 
                     switch (true) {
                         case (qtyInput.length < 1 && settings.validation.validateInputs) :
-                            settings.display.error(settings.display.errorValidQuantityMessage);
+                            settings.display.error(settings, settings.display.errorValidQuantityMessage);
                             break;
                         case (!$.isNumeric(qtyInputVal) && settings.validation.validateInputs) :
-                            settings.display.error(settings.display.errorValidQuantityMessage);
+                            settings.display.error(settings, settings.display.errorValidQuantityMessage);
                             break;
                         case ((typeof qtyInputVal == 'undefined' || qtyInputVal < 1) && settings.validation.validateInputs) :
-                            settings.display.error(settings.display.errorValidQuantityMessage);
+                            settings.display.error(settings, settings.display.errorValidQuantityMessage);
                             break;
                         case (qtyInputVal > stock) :
-                            settings.display.error(settings.display.quantityNotAvailableMessage);
+                            settings.display.error(settings, settings.display.quantityNotAvailableMessage);
                             break;
                         default :
                             isValid = true;
@@ -218,31 +224,31 @@
 
                 };
 
-                settings.validation.error = function(error) {
-                    settings.console.log('settings.validation.error');
-                    settings.display.error(error);
+                settings.validation.error = function(settings, error) {
+                    settings.console.log(settings, 'settings.validation.error');
+                    settings.display.error(settings, error);
                 };
 
-                settings.validation.success = function() {
-                    settings.console.log('settings.validation.success');
-                    settings.ajax.init();
+                settings.validation.success = function(settings) {
+                    settings.console.log(settings, 'settings.validation.success');
+                    settings.ajax.init(settings);
                 };
 
                 /*
                  AJAX
                  */
 
-                settings.ajax.init = function() {
-                    settings.console.log('settings.ajax.init');
+                settings.ajax.init = function(settings) {
+                    settings.console.log(settings, 'settings.ajax.init');
 
                     // Prepare the data
-                    var data = settings.ajax.data();
+                    var data = settings.ajax.data(settings);
                     // Make ajax call
-                    settings.ajax.request(data);
+                    settings.ajax.request(settings, data);
                 };
 
-                settings.ajax.data = function() {
-                    settings.console.log('settings.ajax.data');
+                settings.ajax.data = function(settings) {
+                    settings.console.log(settings, 'settings.ajax.data');
 
                     //build request parameters
                     var data = $('#product_addtocart_form').serialize();
@@ -251,8 +257,8 @@
                     return data;
                 };
 
-                settings.ajax.request = function(data) {
-                    settings.console.log('settings.ajax.request');
+                settings.ajax.request = function(settings, data) {
+                    settings.console.log(settings, 'settings.ajax.request');
 
                     try {
                         $.ajax({
@@ -261,96 +267,95 @@
                             type : 'post',
                             data: data,
                             success: function(data){
-                                settings.console.log('ajax success method');
-                                settings.console.log(data.error);
+                                settings.console.log(settings, 'ajax success method');
+                                settings.console.log(settings, data.error);
                                 if (data.error == false) {
-                                    settings.ajax.success(data);
+                                    settings.ajax.success(settings, data);
                                 } else if (data.error == true) {
-                                    settings.ajax.error(data.message);
+                                    settings.ajax.error(settings, data.message);
                                 }
                             },
                             error: function(){
-                                settings.console.log('ajax error method');
-                                settings.display.error(settings.display.defaultAjaxMessage);
+                                settings.console.log(settings, 'ajax error method');
+                                settings.display.error(settings, settings.display.defaultAjaxMessage);
                             }
                         });
                     } catch (e) {
-                        settings.console.log('ajax catch method');
-                        settings.display.error(settings.display.defaultAjaxMessage);
+                        settings.console.log(settings, 'ajax catch method');
+                        settings.display.error(settings, settings.display.defaultAjaxMessage);
                     }
                     return this;
                 };
 
-                settings.ajax.success = function(data) {
+                settings.ajax.success = function(settings, data) {
 
-                    settings.console.log('settings.ajax.success');
+                    settings.console.log(settings, 'settings.ajax.success');
 
                     switch(settings.init.ajaxCartType) {
                         case '1': //TYPE_MINICART
-                            settings.display.miniCart(data);
+                            settings.display.miniCart(settings, data);
                             break;
                         case '2': //TYPE_INLINE
-                            settings.display.inline(data);
+                            settings.display.inline(settings, data);
                             break;
                         case '3': //TYPE_POPUP
-                            settings.display.popup(data);
+                            settings.display.popup(settings, data);
                             break;
                         default: //TYPE_INLINE
-                            settings.display.inline(data);
+                            settings.display.inline(settings, data);
                     }
 
                     if (settings.display.isInlineNotificationsEnabled)
-                        settings.display.notifications(data);
+                        settings.display.notifications(settings, data);
 
                 };
 
-                settings.ajax.error = function(data) {
-                    settings.console.log('settings.ajax.error');
+                settings.ajax.error = function(settings, data) {
+                    settings.console.log(settings, 'settings.ajax.error');
 
-                    settings.display.error(data.replace(/<(?:.|\n)*?>/gm, ''));
+                    settings.display.error(settings, data.replace(/<(?:.|\n)*?>/gm, ''));
                 };
 
                 /*
                  DISPLAY
                  */
 
-                settings.display.loading = function() {
-                    settings.console.log('settings.display.loading');
+                settings.display.loading = function(settings) {
+                    settings.console.log(settings, 'settings.display.loading');
 
                     var button = settings.elements.target.find(settings.elements.addToCartButton);
-                    console.log(button);
                     // Hide existing text
                     button.children().hide();
                     // Add class, disable and prepend text
                     button.addClass('btn-cart-adding').prop('disabled',true).prepend('<span class="btn-cart-state">' + settings.display.addingToCartText + '</span>');
                 };
 
-                settings.display.resetButton = function() {
-                    settings.console.log('settings.display.resetButton');
+                settings.display.resetButton = function(settings) {
+                    settings.console.log(settings, 'settings.display.resetButton');
 
                     var button = settings.elements.target.find(settings.elements.addToCartButton);
                     button.removeClass('btn-cart-adding btn-cart-added').prop('disabled',false).children().show();
                     button.children('.btn-cart-state').remove();
                 };
 
-                settings.display.miniCart = function(data) {
+                settings.display.miniCart = function(settings, data) {
 
-                    settings.console.log('settings.display.miniCart');
+                    settings.console.log(settings, 'settings.display.miniCart');
 
                     $("#cart_sidebar").html(data.sidebar);
 
-                    settings.display.miniCartAfter();
+                    settings.display.miniCartAfter(settings);
 
-                    settings.display.success();
+                    settings.display.success(settings);
 
                     // Display message
-                    settings.display.message('success',data.message);
+                    settings.display.message(settings, 'success', data.message);
 
                 };
 
-                settings.display.miniCartAfter = function() {
+                settings.display.miniCartAfter = function(settings) {
 
-                    settings.console.log('settings.display.miniCartAfter');
+                    settings.console.log(settings, 'settings.display.miniCartAfter');
 
                     // Reinit foundation dropdowns
                     settings.elements.target.foundation('dropdown', 'reflow');
@@ -369,11 +374,8 @@
 
                 };
 
-                settings.display.popup =  function(data) {
-
-                    console.log(data.messages);
-
-                    settings.console.log('settings.display.popup');
+                settings.display.popup =  function(settings, data) {
+                    settings.console.log(settings, 'settings.display.popup');
 
                     var overlay = $('<div class="ajaxcart-overlay"></div>');
                     var modal = $('<div class="ajaxcart-modal"></div>');
@@ -385,31 +387,31 @@
                     modal.append(modalContent);
                     modal.append(close);
 
-                    settings.display.success();
+                    settings.display.success(settings);
                 };
 
-                settings.display.inline =  function(data) {
+                settings.display.inline =  function(settings, data) {
 
-                    settings.console.log('settings.display.inline');
-                    settings.display.message('success',data.message);
-                    settings.display.success();
+                    settings.console.log(settings, 'settings.display.inline');
+                    settings.display.message(settings, 'success', data.message);
+                    settings.display.success(settings);
                 };
 
-                settings.display.message = function(type,message) {
+                settings.display.message = function(settings, type, message) {
 
                     // Valid types: "success", "notice", "error"
-                    settings.console.log('settings.display.message');
+                    settings.console.log(settings, 'settings.display.message');
 
                     if (settings.init.ajaxCartType == 1 || settings.init.ajaxCartType == 2) { // MINI CART OR INLINE
 
                         if (message.indexOf('</div>') > -1) {
                             console.log('msg has HTML');
-                            settings.display.notifications(message);
+                            settings.display.notifications(settings, message);
                         } else {
                             console.log('msg doesnt have HTML');
                             console.log(message);
                             console.log(typeof message);
-                            settings.display.buildInlineMessage(type,message);
+                            settings.display.buildInlineMessage(settings, type, message);
                         }
 
 
@@ -417,15 +419,15 @@
 
                         console.log('settings.display. popup');
 
-                        settings.display.popup({message:message});
+                        settings.display.popup(settings, {message:message});
 
                     }
 
                 };
 
-                settings.display.notifications = function(notification) {
+                settings.display.notifications = function(settings, notification) {
 
-                    settings.console.log('settings.display.notification');
+                    settings.console.log(settings, 'settings.display.notification');
 
                     var notificationsBlock = $(settings.elements.notificationsBlock);
 
@@ -435,9 +437,9 @@
 
                 };
 
-                settings.display.buildInlineMessage = function(type, message) {
+                settings.display.buildInlineMessage = function(settings, type, message) {
 
-                    settings.console.log('settings.display.buildInlineMessage');
+                    settings.console.log(settings, 'settings.display.buildInlineMessage');
 
                     var messagesWrapper = $(settings.elements.notificationsBlock);
                     var messagesList = $('<div class="messages"></div>');
@@ -450,23 +452,23 @@
 
                 };
 
-                settings.display.success = function(data) {
-                    settings.console.log('settings.display.success');
+                settings.display.success = function(settings, data) {
+                    settings.console.log(settings, 'settings.display.success');
                     // Show success state in button, then reset after X seconds
                     var button = $(settings.elements.addToCartButton);
                     button.removeClass('btn-cart-adding').addClass('btn-cart-added').find('.btn-cart-state').text(settings.display.addedToCartText);
                     window.setTimeout(function(){
-                        settings.display.resetButton();
+                        settings.display.resetButton(settings);
                     },settings.display.successResetDelay);
                 };
 
-                settings.display.error = function(msg) {
-                    settings.console.log('settings.display.error');
-                    settings.display.message('error',msg);
-                    settings.display.resetButton();
+                settings.display.error = function(settings, msg) {
+                    settings.console.log(settings, 'settings.display.error');
+                    settings.display.message(settings, 'error', msg);
+                    settings.display.resetButton(settings);
                 };
 
-                settings.console.log = function(message) {
+                settings.console.log = function(settings, message) {
                     if (settings.console.active) {
                         console.log(message);
                     }
@@ -480,28 +482,28 @@
                 }
 
                 return this.each(function(){
-                    settings.console.log('document.ready');
+                    settings.console.log(settings, 'document.ready');
 
-                    settings.console.log(settings.init);
+                    settings.console.log(settings, settings.init);
 
                     // Check button exists
                     if ($(settings.elements.addToCartButton).length < 1) {
-                        settings.validation.error(settings.display.errorNoAddToCartButtonMessage);
+                        settings.validation.error(settings, settings.display.errorNoAddToCartButtonMessage);
                     }
 
                     // Connect button to onClick setting
                     settings.elements.target.on('click', settings.elements.addToCartButton, function(e){
-                        settings.documentReady.onClick(e);
+                        settings.documentReady.onClick(settings, e);
                     });
 
                     // Connect button to onHover setting
                     settings.elements.target.on('hover', settings.elements.addToCartButton, function(e){
-                        settings.documentReady.onHover(e);
+                        settings.documentReady.onHover(settings, e);
                     });
 
                     // Connect button to onLoad setting
                     settings.elements.target.on('load', settings.elements.addToCartButton, function(e){
-                        settings.documentReady.onLoad(e);
+                        settings.documentReady.onLoad(settings, e);
                     });
 
                     // Close popup

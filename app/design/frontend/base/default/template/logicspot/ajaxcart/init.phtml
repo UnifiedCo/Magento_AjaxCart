@@ -1,0 +1,12 @@
+<?php if (Mage::helper('ajaxcart')->isModuleEnabled()): ?>
+    <script type="text/javascript">
+        //<![CDATA[
+        if (typeof jQuery !== 'undefined') {
+            jQuery(document).ready(function(){
+                console.log(ajaxAddToCart);
+                jQuery('<?php echo $this->getSelector() ?>').each(function() { jQuery(this).ajaxAddToCart(ajaxAddToCart) });
+            });
+        }
+        //]]>
+    </script>
+<?php endif;?>

@@ -2,7 +2,7 @@
 <config>
     <modules>
         <LogicSpot_AjaxCart>
-            <version>0.0.1</version>
+            <version>1.0.0</version>
         </LogicSpot_AjaxCart>
     </modules>
     <global>
