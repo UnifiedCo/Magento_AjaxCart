@@ -1,0 +1,20 @@
+<?php if (Mage::helper('ajaxcart')->isModuleEnabled()): ?>
+    <script type="text/javascript">
+        //<![CDATA[
+        if (typeof ajaxAddToCart != 'undefined') {
+            ajaxAddToCart.ajax = {
+                data: function(settings) {
+                    settings.console.log(settings, 'settings.ajax.data.custom');
+                    // Get the product configuration data
+                    var productData = settings.validation.getProductConfiguration(settings);
+                    return {
+                        product: productData.productId,
+                        qty: 1,
+                        isAjax: 1
+                    }
+                }
+            }
+        }
+        //]]>
+    </script>
+<?php endif;?>
